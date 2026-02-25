@@ -49,7 +49,11 @@ function onEvent(payload: HookEventPayload): void {
   }
 }
 
-const httpServer = createHttpServer({ onEvent, getSnapshot });
+function renameAgent(sessionId: string, name: string | null): boolean {
+  return store.renameAgent(sessionId, name);
+}
+
+const httpServer = createHttpServer({ onEvent, getSnapshot, renameAgent });
 const broadcaster = new WSBroadcaster(httpServer, { getSnapshot });
 
 httpServer.listen(PORT, () => {

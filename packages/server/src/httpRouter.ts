@@ -27,6 +27,7 @@ function normalizePayload(raw: Record<string, unknown>): HookEventPayload {
 export interface HttpRouterOptions {
   onEvent: (payload: HookEventPayload) => void;
   getSnapshot: () => object;
+  renameAgent: (sessionId: string, name: string | null) => boolean;
   /** Path to the UI dist directory. Defaults to ../../ui/dist relative to server dist. */
   uiDistPath?: string;
 }
@@ -44,14 +45,14 @@ function sendJson(res: ServerResponse, status: number, data: unknown): void {
   res.writeHead(status, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   });
   res.end(JSON.stringify(data));
 }
 
 export function createHttpServer(options: HttpRouterOptions) {
-  const { onEvent, getSnapshot, uiDistPath } = options;
+  const { onEvent, getSnapshot, renameAgent, uiDistPath } = options;
   const serveStatic = createStaticHandler(uiDistPath);
 
   const server = createServer(async (req, res) => {
@@ -88,6 +89,20 @@ export function createHttpServer(options: HttpRouterOptions) {
     if (req.method === 'GET' && url.pathname === '/api/agents') {
       const snapshot = getSnapshot() as { agents?: unknown };
       sendJson(res, 200, snapshot.agents ?? []);
+      return;
+    }
+
+    // PUT /api/agents/:id/name — rename an agent
+    const renameMatch = url.pathname.match(/^\/api\/agents\/([^/]+)\/name$/);
+    if (req.method === 'PUT' && renameMatch) {
+      try {
+        const body = await readBody(req);
+        const { name } = JSON.parse(body) as { name: string | null };
+        const ok = renameAgent(renameMatch[1]!, name);
+        sendJson(res, ok ? 200 : 404, ok ? { ok: true } : { error: 'Agent not found' });
+      } catch {
+        sendJson(res, 400, { error: 'Invalid JSON' });
+      }
       return;
     }
 

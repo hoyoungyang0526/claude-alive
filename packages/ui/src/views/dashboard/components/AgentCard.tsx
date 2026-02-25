@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import type { AgentInfo, ToolAnimation } from '@claude-alive/core';
 import { useNow } from '../hooks/useNow';
 
@@ -39,18 +40,38 @@ function formatTimeSince(now: number, timestamp: number): string {
   return `${Math.floor(minutes / 60)}h ago`;
 }
 
+function formatTime(ts: number): string {
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 interface AgentCardProps {
   agent: AgentInfo;
+  onRename?: (sessionId: string, name: string | null) => void;
 }
 
 const IDLE_CONFIG = STATE_CONFIG.idle;
 
-export function AgentCard({ agent }: AgentCardProps) {
+export function AgentCard({ agent, onRename }: AgentCardProps) {
   const config = STATE_CONFIG[agent.state] ?? IDLE_CONFIG;
   const shortId = agent.sessionId.slice(0, 8);
   const now = useNow();
   const timeSince = formatTimeSince(now, agent.lastEventTime);
   const animation = agent.currentToolAnimation;
+  const [editing, setEditing] = useState(false);
+  const [nameInput, setNameInput] = useState(agent.displayName ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  const handleRename = () => {
+    const trimmed = nameInput.trim();
+    onRename?.(agent.sessionId, trimmed || null);
+    setEditing(false);
+  };
+
+  const displayLabel = agent.displayName || agent.projectName || shortId;
 
   return (
     <div
@@ -61,10 +82,10 @@ export function AgentCard({ agent }: AgentCardProps) {
         animation: agent.state === 'active' ? 'glow 2s ease-in-out infinite' : undefined,
       }}
     >
-      {/* Avatar + Info */}
-      <div className="flex items-center gap-3 mb-3">
+      {/* Header: Avatar + Name + Time */}
+      <div className="flex items-center gap-3 mb-2">
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold"
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold shrink-0"
           style={{
             background: `${config.color}20`,
             color: config.color,
@@ -74,11 +95,36 @@ export function AgentCard({ agent }: AgentCardProps) {
           {agent.parentId ? 'S' : 'A'}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-            {agent.parentId ? 'Sub-agent' : 'Agent'} {shortId}
-          </div>
-          <div className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-            {agent.cwd.split('/').pop() || agent.cwd}
+          {editing ? (
+            <input
+              ref={inputRef}
+              className="text-sm font-medium w-full rounded px-1 py-0.5 outline-none"
+              style={{
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--accent-blue)',
+              }}
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onBlur={handleRename}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRename();
+                if (e.key === 'Escape') { setEditing(false); setNameInput(agent.displayName ?? ''); }
+              }}
+              placeholder={agent.projectName || shortId}
+            />
+          ) : (
+            <div
+              className="text-sm font-medium cursor-pointer hover:underline truncate"
+              style={{ color: 'var(--text-primary)' }}
+              onClick={() => { setNameInput(agent.displayName ?? ''); setEditing(true); }}
+              title="Click to rename"
+            >
+              {displayLabel}
+            </div>
+          )}
+          <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
+            {agent.parentId ? 'sub-agent' : 'agent'} · {shortId}
           </div>
         </div>
         {timeSince && (
@@ -87,6 +133,41 @@ export function AgentCard({ agent }: AgentCardProps) {
           </div>
         )}
       </div>
+
+      {/* Project/folder path */}
+      <div
+        className="text-[11px] mb-2 px-2 py-1 rounded truncate font-mono"
+        style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+        title={agent.cwd}
+      >
+        {agent.cwd}
+      </div>
+
+      {/* Meta row: started at, events count, tools used */}
+      <div className="flex items-center gap-3 mb-2 text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+        <span title="Started at">
+          {'\u23F0'} {formatTime(agent.createdAt)}
+        </span>
+        <span title="Total events received">
+          {'\u26A1'} {agent.totalEvents ?? 0} events
+        </span>
+        {agent.toolsUsed && agent.toolsUsed.length > 0 && (
+          <span title={`Tools: ${agent.toolsUsed.join(', ')}`}>
+            {'\uD83D\uDEE0'} {agent.toolsUsed.length} tools
+          </span>
+        )}
+      </div>
+
+      {/* Last prompt preview */}
+      {agent.lastPrompt && (
+        <div
+          className="text-[10px] mb-2 truncate italic"
+          style={{ color: 'var(--text-secondary)' }}
+          title={agent.lastPrompt}
+        >
+          "{agent.lastPrompt}"
+        </div>
+      )}
 
       {/* Status + Tool */}
       <div className="flex items-center justify-between">

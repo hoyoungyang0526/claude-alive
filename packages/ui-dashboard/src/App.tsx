@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useWebSocket } from './hooks/useWebSocket';
 import { Header } from './components/Header';
 import { StatsBar } from './components/StatsBar';
@@ -6,10 +7,19 @@ import { ActivityPulse } from './components/ActivityPulse';
 import { EventStream } from './components/EventStream';
 
 const WS_URL = `ws://${window.location.hostname}:${window.location.port || '3141'}/ws`;
+const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3141'}`;
 
 function App() {
   const { agents, events, connected } = useWebSocket(WS_URL);
   const agentList = Array.from(agents.values());
+
+  const handleRename = useCallback((sessionId: string, name: string | null) => {
+    fetch(`${API_BASE}/api/agents/${sessionId}/name`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
@@ -37,7 +47,7 @@ function App() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {agentList.map(agent => (
-                <AgentCard key={agent.sessionId} agent={agent} />
+                <AgentCard key={agent.sessionId} agent={agent} onRename={handleRename} />
               ))}
             </div>
           )}

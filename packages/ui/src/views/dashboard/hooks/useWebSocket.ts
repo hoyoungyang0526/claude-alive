@@ -67,7 +67,10 @@ export function useWebSocket(url: string) {
             break;
           }
           case 'agent:prompt': {
-            // Could track last prompt per agent if needed
+            const pa = agents.get(msg.sessionId);
+            if (pa) {
+              agents.set(msg.sessionId, { ...pa, lastPrompt: msg.prompt });
+            }
             break;
           }
           case 'event:new': {

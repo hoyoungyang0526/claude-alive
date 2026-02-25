@@ -59,4 +59,16 @@ export interface AgentInfo {
   lastEventTime: number;
   parentId: string | null;
   createdAt: number;
+  /** User-assignable display name */
+  displayName: string | null;
+  /** Extracted from cwd — last folder component */
+  projectName: string;
+  /** Path to JSONL transcript file */
+  transcriptPath: string | null;
+  /** Total hook events received for this agent */
+  totalEvents: number;
+  /** Most recent user prompt text */
+  lastPrompt: string | null;
+  /** Accumulated list of unique tools used */
+  toolsUsed: string[];
 }

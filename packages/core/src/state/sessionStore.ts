@@ -70,6 +70,31 @@ export class SessionStore {
     agent.currentToolAnimation = result.toolAnimation;
     agent.lastEvent = event;
     agent.lastEventTime = payload.timestamp;
+    agent.totalEvents++;
+
+    // Capture transcript path if provided
+    if (data.transcript_path && !agent.transcriptPath) {
+      agent.transcriptPath = data.transcript_path;
+    }
+
+    // Capture last user prompt
+    if (event === 'UserPromptSubmit' && data.prompt) {
+      agent.lastPrompt = data.prompt;
+    }
+
+    // Track unique tools used
+    if (toolName) {
+      const displayName = extractToolDisplayName(toolName);
+      if (!agent.toolsUsed.includes(displayName)) {
+        agent.toolsUsed.push(displayName);
+      }
+    }
+
+    // Update cwd if it changed
+    if (data.cwd && data.cwd !== agent.cwd) {
+      agent.cwd = data.cwd;
+      agent.projectName = data.cwd.split('/').filter(Boolean).pop() ?? data.cwd;
+    }
 
     if (event === 'Stop') {
       agent.currentTool = null;
@@ -80,7 +105,15 @@ export class SessionStore {
     return agent;
   }
 
+  renameAgent(sessionId: string, name: string | null): boolean {
+    const agent = this.agents.get(sessionId);
+    if (!agent) return false;
+    agent.displayName = name;
+    return true;
+  }
+
   private createAgent(sessionId: string, cwd: string, parentId?: string): AgentInfo {
+    const projectName = cwd.split('/').filter(Boolean).pop() ?? cwd;
     const agent: AgentInfo = {
       id: sessionId,
       sessionId,
@@ -92,6 +125,12 @@ export class SessionStore {
       lastEventTime: Date.now(),
       parentId: parentId ?? null,
       createdAt: Date.now(),
+      displayName: null,
+      projectName,
+      transcriptPath: null,
+      totalEvents: 0,
+      lastPrompt: null,
+      toolsUsed: [],
     };
     this.agents.set(sessionId, agent);
     this.addLogEntry(
