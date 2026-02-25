@@ -15,5 +15,8 @@
     "turbo": "^2",
     "typescript": "^5.7"
   },
-  "packageManager": "pnpm@10.28.2"
+  "packageManager": "pnpm@10.28.2",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
 }
