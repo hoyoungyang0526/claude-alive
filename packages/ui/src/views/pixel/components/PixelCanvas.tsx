@@ -5,7 +5,7 @@ import type { Entity } from '../engine/renderer';
 import { clampCamera, screenToWorld } from '../engine/camera';
 import { createGameLoop } from '../engine/gameLoop';
 import { renderFrame } from '../engine/renderer';
-import { TILE_SIZE, MIN_ZOOM, MAX_ZOOM } from '../engine/constants';
+import { TILE_SIZE, MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from '../engine/constants';
 
 interface PixelCanvasProps {
   camera: React.MutableRefObject<Camera>;
@@ -19,6 +19,8 @@ export default function PixelCanvas({ camera, tileMap, entities, onTileClick, on
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isPanning = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
+  const dragStart = useRef({ x: 0, y: 0 });
+  const isDragging = useRef(false);
 
   const mapWidth = tileMap.cols * TILE_SIZE;
   const mapHeight = tileMap.rows * TILE_SIZE;
@@ -74,9 +76,10 @@ export default function PixelCanvas({ camera, tileMap, entities, onTileClick, on
   // Mouse handlers
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      // Middle button or left + alt for panning
-      if (e.button === 1 || (e.button === 0 && e.altKey)) {
+      if (e.button === 0 || e.button === 1) {
         isPanning.current = true;
+        isDragging.current = false;
+        dragStart.current = { x: e.clientX, y: e.clientY };
         lastMouse.current = { x: e.clientX, y: e.clientY };
         e.preventDefault();
       }
@@ -87,9 +90,21 @@ export default function PixelCanvas({ camera, tileMap, entities, onTileClick, on
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (!isPanning.current) return;
+
       const dx = e.clientX - lastMouse.current.x;
       const dy = e.clientY - lastMouse.current.y;
       lastMouse.current = { x: e.clientX, y: e.clientY };
+
+      if (!isDragging.current) {
+        const totalDx = e.clientX - dragStart.current.x;
+        const totalDy = e.clientY - dragStart.current.y;
+        if (Math.abs(totalDx) > 5 || Math.abs(totalDy) > 5) {
+          isDragging.current = true;
+        } else {
+          return;
+        }
+      }
+
       camera.current = {
         ...camera.current,
         x: camera.current.x - dx / camera.current.zoom,
@@ -99,56 +114,53 @@ export default function PixelCanvas({ camera, tileMap, entities, onTileClick, on
     [camera],
   );
 
-  const handleMouseUp = useCallback(() => {
-    isPanning.current = false;
-  }, []);
+  const handleMouseUp = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const wasDragging = isDragging.current;
+      isPanning.current = false;
+      isDragging.current = false;
+
+      if (!wasDragging && e.button === 0) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const screenX = e.clientX - rect.left;
+        const screenY = e.clientY - rect.top;
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.width / dpr;
+        const cssH = canvas.height / dpr;
+        const world = screenToWorld(camera.current, screenX, screenY, cssW, cssH);
+        if (onWorldClick) onWorldClick(world.x, world.y);
+        if (onTileClick) {
+          const col = Math.floor(world.x / TILE_SIZE);
+          const row = Math.floor(world.y / TILE_SIZE);
+          onTileClick(col, row);
+        }
+      }
+    },
+    [camera, onTileClick, onWorldClick],
+  );
 
   const handleWheel = useCallback(
     (e: React.WheelEvent<HTMLCanvasElement>) => {
       e.preventDefault();
-      const delta = e.deltaY > 0 ? -1 : 1;
+      const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, camera.current.zoom + delta));
       camera.current = { ...camera.current, zoom: newZoom };
     },
     [camera],
   );
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const screenX = e.clientX - rect.left;
-      const screenY = e.clientY - rect.top;
-      const dpr = window.devicePixelRatio || 1;
-      const cssW = canvas.width / dpr;
-      const cssH = canvas.height / dpr;
-
-      const world = screenToWorld(camera.current, screenX, screenY, cssW, cssH);
-
-      if (onWorldClick) {
-        onWorldClick(world.x, world.y);
-      }
-      if (onTileClick) {
-        const col = Math.floor(world.x / TILE_SIZE);
-        const row = Math.floor(world.y / TILE_SIZE);
-        onTileClick(col, row);
-      }
-    },
-    [camera, onTileClick, onWorldClick],
-  );
-
   return (
     <canvas
       ref={canvasRef}
       className="pixel-canvas"
+      style={{ cursor: 'grab' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
-      onClick={handleClick}
       onContextMenu={(e) => e.preventDefault()}
     />
   );

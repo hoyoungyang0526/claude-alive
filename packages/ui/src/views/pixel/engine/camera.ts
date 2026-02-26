@@ -3,7 +3,7 @@ import { DEFAULT_ZOOM, MIN_ZOOM, MAX_ZOOM, TILE_SIZE, DEFAULT_COLS, DEFAULT_ROWS
 export interface Camera {
   x: number; // world X center (in pixels)
   y: number; // world Y center (in pixels)
-  zoom: number; // integer zoom level
+  zoom: number; // zoom level (0.5-8)
 }
 
 export function createCamera(): Camera {

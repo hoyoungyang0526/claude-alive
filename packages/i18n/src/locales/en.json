@@ -99,6 +99,11 @@
     "agent": "Agent",
     "tool": "Tool:"
   },
+  "completionLog": {
+    "title": "Completed Sessions",
+    "empty": "No completed sessions yet",
+    "sessionCompleted": "Session completed"
+  },
   "loading": "Loading 3D scene...",
   "loadingBishoujo": "Loading Live2D scene..."
 }

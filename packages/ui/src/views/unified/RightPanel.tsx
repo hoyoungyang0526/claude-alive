@@ -1,13 +1,15 @@
-import type { AgentInfo, EventLogEntry } from '@claude-alive/core';
+import type { AgentInfo, CompletedSession, EventLogEntry } from '@claude-alive/core';
 import { ActivityPulse } from '../dashboard/components/ActivityPulse.tsx';
 import { EventStream } from '../dashboard/components/EventStream.tsx';
+import { CompletionLog } from '../dashboard/components/CompletionLog.tsx';
 
 interface RightPanelProps {
   events: EventLogEntry[];
   agents: AgentInfo[];
+  completedSessions: CompletedSession[];
 }
 
-export function RightPanel({ events, agents }: RightPanelProps) {
+export function RightPanel({ events, agents, completedSessions }: RightPanelProps) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
@@ -22,6 +24,13 @@ export function RightPanel({ events, agents }: RightPanelProps) {
       <div className="shrink-0 p-3 pb-0">
         <ActivityPulse events={events} />
       </div>
+
+      {/* Completion Log */}
+      {completedSessions.length > 0 && (
+        <div className="shrink-0 p-3 pb-0">
+          <CompletionLog completedSessions={completedSessions} />
+        </div>
+      )}
 
       {/* Event Stream - fills remaining space */}
       <div className="flex-1 overflow-hidden flex flex-col min-h-0 p-3 pt-3">

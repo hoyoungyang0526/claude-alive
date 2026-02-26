@@ -5,7 +5,7 @@ import { StatsBar } from '../dashboard/components/StatsBar.tsx';
 import { AgentCard } from '../dashboard/components/AgentCard.tsx';
 import PixelCanvas from './components/PixelCanvas.tsx';
 import { createOfficeState, updateOffice, getEntities, spawnCharacter, despawnCharacter } from './engine/officeState';
-import { startToolActivity, setCharacterIdle } from './engine/character';
+import { startToolActivity, setCharacterIdle, getAnthropomorphicText } from './engine/character';
 import type { Entity } from './engine/renderer';
 
 // ── WebSocket ────────────────────────────────────────────────────────────
@@ -113,19 +113,58 @@ export function PixelView() {
           case 'agent:state': {
             const agent = next.get(msg.sessionId);
             if (agent) {
+              const toolsUsed = msg.tool && !agent.toolsUsed.includes(msg.tool)
+                ? [...agent.toolsUsed, msg.tool]
+                : agent.toolsUsed;
               next.set(msg.sessionId, {
                 ...agent,
                 state: msg.state as AgentState,
                 currentTool: msg.tool,
                 currentToolAnimation: msg.animation as ToolAnimation | null,
+                lastEventTime: msg.timestamp,
+                totalEvents: agent.totalEvents + 1,
+                toolsUsed,
               });
             }
             break;
           }
-          case 'event:new':
-            setEvents(prev => [...prev.slice(-199), msg.entry]);
+          case 'agent:prompt': {
+            const agent = next.get(msg.sessionId);
+            if (agent) {
+              next.set(msg.sessionId, {
+                ...agent,
+                lastPrompt: msg.prompt,
+              });
+            }
             break;
-          case 'agent:prompt':
+          }
+          case 'agent:rename': {
+            const agent = next.get(msg.sessionId);
+            if (agent) {
+              next.set(msg.sessionId, {
+                ...agent,
+                displayName: msg.name,
+              });
+            }
+            break;
+          }
+          case 'event:new': {
+            setEvents(prev => [...prev.slice(-199), msg.entry]);
+            const agent = next.get(msg.entry.sessionId);
+            if (agent) {
+              const toolsUsed = msg.entry.tool && !agent.toolsUsed.includes(msg.entry.tool)
+                ? [...agent.toolsUsed, msg.entry.tool]
+                : agent.toolsUsed;
+              next.set(msg.entry.sessionId, {
+                ...agent,
+                lastEvent: msg.entry.event as import('@claude-alive/core').HookEventName,
+                lastEventTime: msg.entry.timestamp,
+                totalEvents: agent.totalEvents + 1,
+                toolsUsed,
+              });
+            }
+            break;
+          }
           case 'system:heartbeat':
             break;
         }
@@ -138,6 +177,9 @@ export function PixelView() {
           for (const agent of msg.agents) {
             if (!officeState.characters.has(agent.sessionId)) {
               const char = spawnCharacter(officeState, agent.sessionId);
+              char.bubbleText = getAnthropomorphicText(
+                agent.state, agent.currentTool, agent.currentToolAnimation,
+              );
               if (agent.state === 'active' && agent.currentToolAnimation) {
                 startToolActivity(char, mapToolAnimation(agent.currentToolAnimation), officeState.tileMap);
               } else if (agent.state === 'waiting') {
@@ -183,6 +225,8 @@ export function PixelView() {
               despawnCharacter(officeState, msg.sessionId);
               break;
           }
+          // Set after switch so setCharacterIdle() doesn't clear it
+          char.bubbleText = getAnthropomorphicText(msg.state, msg.tool, msg.animation);
           break;
         }
         case 'agent:prompt': {

@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import type { WSServerMessage, WSClientMessage } from '@claude-alive/core';
 
 export interface WSBroadcasterOptions {
-  getSnapshot: () => { agents: unknown[]; recentEvents: unknown[] };
+  getSnapshot: () => { agents: unknown[]; recentEvents: unknown[]; completedSessions: unknown[] };
 }
 
 export class WSBroadcaster {

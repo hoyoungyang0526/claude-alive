@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WSServerMessage } from '@claude-alive/core';
 import { useWebSocket } from '../dashboard/hooks/useWebSocket.ts';
@@ -13,61 +13,64 @@ import {
   spawnCharacter,
   despawnCharacter,
 } from '../pixel/engine/officeState';
-import { startToolActivity, setCharacterIdle, hitTestCharacter } from '../pixel/engine/character';
+import { startToolActivity, setCharacterIdle, hitTestCharacter, getAnthropomorphicText } from '../pixel/engine/character';
 import type { Entity } from '../pixel/engine/renderer';
 
-// Lazy-load 3D components
-const LazyBattlefieldScene = lazy(() =>
-  import('../3d/components/BattlefieldScene.tsx').then(m => ({ default: m.BattlefieldScene }))
-);
-const LazyAgentModel = lazy(() =>
-  import('../3d/components/AgentModel.tsx').then(m => ({ default: m.AgentModel }))
-);
-const LazyToolParticles = lazy(() =>
-  import('../3d/components/ToolParticles.tsx').then(m => ({ default: m.ToolParticles }))
-);
+// TODO: 3D 뷰 추후 복원 시 주석 해제
+// const LazyBattlefieldScene = lazy(() =>
+//   import('../3d/components/BattlefieldScene.tsx').then(m => ({ default: m.BattlefieldScene }))
+// );
+// const LazyAgentModel = lazy(() =>
+//   import('../3d/components/AgentModel.tsx').then(m => ({ default: m.AgentModel }))
+// );
+// const LazyToolParticles = lazy(() =>
+//   import('../3d/components/ToolParticles.tsx').then(m => ({ default: m.ToolParticles }))
+// );
 
 // Lazy-load Bishoujo (Live2D) components
 const LazyBishoujoCanvas = lazy(() =>
   import('../bishoujo/components/BishoujoCanvas.tsx').then(m => ({ default: m.BishoujoCanvas }))
 );
 
-export type ViewMode = 'three-d' | 'pixel' | 'bishoujo';
+export type ViewMode = 'pixel' | 'bishoujo';
+// TODO: 3D 뷰 추후 복원 시 'three-d' 추가
+// export type ViewMode = 'three-d' | 'pixel' | 'bishoujo';
 
 const WS_URL = `ws://${window.location.hostname}:${window.location.port || '3141'}/ws`;
 const API_BASE = `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3141'}`;
 
-const AGENT_COLORS = [
-  '#448aff', '#00c853', '#7c4dff', '#ff6d00',
-  '#00bcd4', '#e91e63', '#ffab00', '#76ff03',
-];
-
-function assignGridPosition(index: number): [number, number, number] {
-  const cols = 4;
-  const spacing = 3;
-  const offsetX = -((cols - 1) * spacing) / 2;
-  const col = index % cols;
-  const row = Math.floor(index / cols);
-  return [offsetX + col * spacing, 0, -4 + row * spacing];
-}
-
-type AgentVisualState = 'idle' | 'active' | 'waiting' | 'error';
-
-function mapAgentState(state: string): AgentVisualState {
-  switch (state) {
-    case 'active':
-    case 'listening':
-      return 'active';
-    case 'waiting':
-    case 'spawning':
-    case 'despawning':
-      return 'waiting';
-    case 'error':
-      return 'error';
-    default:
-      return 'idle';
-  }
-}
+// TODO: 3D 뷰 추후 복원 시 주석 해제
+// const AGENT_COLORS = [
+//   '#448aff', '#00c853', '#7c4dff', '#ff6d00',
+//   '#00bcd4', '#e91e63', '#ffab00', '#76ff03',
+// ];
+//
+// function assignGridPosition(index: number): [number, number, number] {
+//   const cols = 4;
+//   const spacing = 3;
+//   const offsetX = -((cols - 1) * spacing) / 2;
+//   const col = index % cols;
+//   const row = Math.floor(index / cols);
+//   return [offsetX + col * spacing, 0, -4 + row * spacing];
+// }
+//
+// type AgentVisualState = 'idle' | 'active' | 'waiting' | 'error';
+//
+// function mapAgentState(state: string): AgentVisualState {
+//   switch (state) {
+//     case 'active':
+//     case 'listening':
+//       return 'active';
+//     case 'waiting':
+//     case 'spawning':
+//     case 'despawning':
+//       return 'waiting';
+//     case 'error':
+//       return 'error';
+//     default:
+//       return 'idle';
+//   }
+// }
 
 function mapToolAnimation(animation: string | null): 'typing' | 'reading' {
   switch (animation) {
@@ -107,6 +110,9 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
               label: agent.displayName || (agent.parentId ? agent.projectName : null),
               project: agent.cwd,
             });
+            char.bubbleText = getAnthropomorphicText(
+              agent.state, agent.currentTool, agent.currentToolAnimation,
+            );
             if (agent.state === 'active' && agent.currentToolAnimation) {
               startToolActivity(char, mapToolAnimation(agent.currentToolAnimation), officeState.tileMap);
             } else if (agent.state === 'waiting') {
@@ -144,8 +150,15 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
             break;
           }
           case 'idle':
-          case 'done':
             setCharacterIdle(char);
+            break;
+          case 'done':
+            // Keep character idle but pin farewell bubble
+            char.state = 'idle';
+            char.animFrame = 0;
+            char.animTimer = 0;
+            char.bubble = 'none';
+            char.bubbleLarge = true;
             break;
           case 'listening':
             setCharacterIdle(char);
@@ -161,6 +174,8 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
             despawnCharacter(officeState, msg.sessionId);
             break;
         }
+        // Set after switch so setCharacterIdle() doesn't clear it
+        char.bubbleText = getAnthropomorphicText(msg.state, msg.tool, msg.animation);
         break;
       }
       case 'agent:prompt': {
@@ -168,10 +183,15 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
         if (char) char.direction = 'down';
         break;
       }
+      case 'agent:rename': {
+        const char = officeState.characters.get(msg.sessionId);
+        if (char) char.label = msg.name;
+        break;
+      }
     }
   }, []);
 
-  const { agents, events } = useWebSocket(WS_URL, handleRawMessage);
+  const { agents, events, completedSessions } = useWebSocket(WS_URL, handleRawMessage);
   const agentList = Array.from(agents.values());
 
   // Rename handler
@@ -222,15 +242,15 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
     return () => { running = false; };
   }, []);
 
-  // 3D agent mapping
-  const battleAgents = useMemo(() => {
-    return agentList.map((agent, i) => ({
-      sessionId: agent.sessionId,
-      position: assignGridPosition(i) as [number, number, number],
-      color: AGENT_COLORS[i % AGENT_COLORS.length],
-      state: mapAgentState(agent.state),
-    }));
-  }, [agentList]);
+  // TODO: 3D 뷰 추후 복원 시 주석 해제
+  // const battleAgents = useMemo(() => {
+  //   return agentList.map((agent, i) => ({
+  //     sessionId: agent.sessionId,
+  //     position: assignGridPosition(i) as [number, number, number],
+  //     color: AGENT_COLORS[i % AGENT_COLORS.length],
+  //     state: mapAgentState(agent.state),
+  //   }));
+  // }, [agentList]);
 
   return (
     <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
@@ -246,7 +266,7 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
             entities={entities}
             onWorldClick={handleWorldClick}
           />
-        ) : viewMode === 'bishoujo' ? (
+        ) : (
           <Suspense
             fallback={
               <div
@@ -266,42 +286,19 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
           >
             <LazyBishoujoCanvas agents={agentList} />
           </Suspense>
-        ) : (
-          <Suspense
-            fallback={
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-secondary)',
-                  fontSize: 12,
-                }}
-              >
-                {t('loading')}
-              </div>
-            }
-          >
-            <LazyBattlefieldScene>
-              {battleAgents.map(agent => (
-                <group key={agent.sessionId}>
-                  <LazyAgentModel
-                    position={agent.position}
-                    color={agent.color}
-                    state={agent.state}
-                  />
-                  <LazyToolParticles
-                    position={[agent.position[0], agent.position[1] + 0.5, agent.position[2]]}
-                    color={agent.color}
-                    active={agent.state === 'active'}
-                  />
-                </group>
-              ))}
-            </LazyBattlefieldScene>
-          </Suspense>
         )}
+        {/* TODO: 3D 뷰 추후 복원 시 viewMode === 'three-d' 분기 추가
+        <Suspense fallback={...}>
+          <LazyBattlefieldScene>
+            {battleAgents.map(agent => (
+              <group key={agent.sessionId}>
+                <LazyAgentModel position={agent.position} color={agent.color} state={agent.state} />
+                <LazyToolParticles position={...} color={agent.color} active={agent.state === 'active'} />
+              </group>
+            ))}
+          </LazyBattlefieldScene>
+        </Suspense>
+        */}
 
         {/* Notification overlay at bottom of center */}
         <div
@@ -319,7 +316,7 @@ export function UnifiedView({ viewMode }: UnifiedViewProps) {
       </div>
 
       {/* Right sidebar: Activity + Events */}
-      <RightPanel events={events} agents={agentList} />
+      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} />
     </div>
   );
 }

@@ -4,7 +4,8 @@ import { StyleSelector } from './components/StyleSelector.tsx';
 import { UnifiedView } from './views/unified/UnifiedView.tsx';
 import type { ViewMode } from './views/unified/UnifiedView.tsx';
 
-const VALID_MODES: ViewMode[] = ['three-d', 'pixel', 'bishoujo'];
+const VALID_MODES: ViewMode[] = ['pixel', 'bishoujo'];
+// TODO: 3D 뷰 추후 복원 시 'three-d' 추가
 
 function getInitialMode(): ViewMode {
   const stored = localStorage.getItem('claude-alive-style');

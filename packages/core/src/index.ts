@@ -1,7 +1,7 @@
 export { HOOK_EVENTS, AGENT_STATES, TOOL_ANIMATIONS } from './events/types.js';
 export type {
   HookEventName, AgentState, ToolAnimation,
-  HookEventPayload, HookEventData, AgentInfo,
+  HookEventPayload, HookEventData, AgentInfo, CompletedSession,
 } from './events/types.js';
 export { toolToAnimation, extractToolDisplayName } from './events/toolMapper.js';
 export { transition } from './state/agentFSM.js';

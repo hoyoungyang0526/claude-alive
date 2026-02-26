@@ -7,7 +7,7 @@ interface StyleSelectorProps {
 }
 
 const MODE_KEYS: { key: ViewMode; labelKey: string }[] = [
-  { key: 'three-d', labelKey: 'styles.threeDField' },
+  // { key: 'three-d', labelKey: 'styles.threeDField' }, // TODO: 3D 뷰 추후 복원
   { key: 'pixel', labelKey: 'styles.pixel' },
   { key: 'bishoujo', labelKey: 'styles.bishoujo' },
 ];

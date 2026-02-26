@@ -99,6 +99,11 @@
     "agent": "에이전트",
     "tool": "도구:"
   },
+  "completionLog": {
+    "title": "완료된 세션",
+    "empty": "아직 완료된 세션이 없습니다",
+    "sessionCompleted": "세션 완료"
+  },
   "loading": "3D 씬 로딩 중...",
   "loadingBishoujo": "Live2D 씬 로딩 중..."
 }

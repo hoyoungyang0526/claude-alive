@@ -48,6 +48,15 @@ export interface HookEventData {
   notification_type?: string;
 }
 
+export interface CompletedSession {
+  sessionId: string;
+  cwd: string;
+  projectName: string;
+  completedAt: number;
+  lastPrompt: string | null;
+  displayName: string | null;
+}
+
 export interface AgentInfo {
   id: string;
   sessionId: string;

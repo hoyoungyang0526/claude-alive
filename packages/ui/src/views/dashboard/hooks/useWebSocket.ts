@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { AgentInfo, AgentState, ToolAnimation, EventLogEntry, WSServerMessage } from '@claude-alive/core';
+import type { AgentInfo, AgentState, CompletedSession, ToolAnimation, EventLogEntry, WSServerMessage } from '@claude-alive/core';
 
 export interface DashboardState {
   agents: Map<string, AgentInfo>;
   events: EventLogEntry[];
+  completedSessions: CompletedSession[];
   connected: boolean;
 }
 
@@ -11,6 +12,7 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
   const [state, setState] = useState<DashboardState>({
     agents: new Map(),
     events: [],
+    completedSessions: [],
     connected: false,
   });
   const wsRef = useRef<WebSocket | null>(null);
@@ -37,6 +39,7 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
       setState(prev => {
         const agents = new Map(prev.agents);
         let events = prev.events;
+        let completedSessions = prev.completedSessions;
 
         switch (msg.type) {
           case 'snapshot': {
@@ -45,6 +48,7 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
               agents.set(agent.sessionId, agent);
             }
             events = msg.recentEvents;
+            completedSessions = msg.completedSessions ?? [];
             break;
           }
           case 'agent:spawn': {
@@ -58,11 +62,17 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
           case 'agent:state': {
             const agent = agents.get(msg.sessionId);
             if (agent) {
+              const toolsUsed = msg.tool && !agent.toolsUsed.includes(msg.tool)
+                ? [...agent.toolsUsed, msg.tool]
+                : agent.toolsUsed;
               agents.set(msg.sessionId, {
                 ...agent,
                 state: msg.state as AgentState,
                 currentTool: msg.tool,
                 currentToolAnimation: msg.animation as ToolAnimation | null,
+                lastEventTime: msg.timestamp ?? agent.lastEventTime,
+                totalEvents: agent.totalEvents + 1,
+                toolsUsed,
               });
             }
             break;
@@ -74,8 +84,31 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
             }
             break;
           }
+          case 'agent:rename': {
+            const ra = agents.get(msg.sessionId);
+            if (ra) {
+              agents.set(msg.sessionId, { ...ra, displayName: msg.name });
+            }
+            break;
+          }
+          case 'agent:completed': {
+            completedSessions = [...completedSessions, msg.session];
+            break;
+          }
           case 'event:new': {
             events = [...events.slice(-199), msg.entry];
+            const ea = agents.get(msg.entry.sessionId);
+            if (ea) {
+              const toolsUsed = msg.entry.tool && !ea.toolsUsed.includes(msg.entry.tool)
+                ? [...ea.toolsUsed, msg.entry.tool]
+                : ea.toolsUsed;
+              agents.set(msg.entry.sessionId, {
+                ...ea,
+                lastEventTime: msg.entry.timestamp,
+                totalEvents: ea.totalEvents + 1,
+                toolsUsed,
+              });
+            }
             break;
           }
           case 'system:heartbeat': {
@@ -84,7 +117,7 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
           }
         }
 
-        return { agents, events, connected: true };
+        return { agents, events, completedSessions, connected: true };
       });
     };
   }, [url, onRawMessage]);

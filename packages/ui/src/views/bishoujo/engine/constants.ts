@@ -22,19 +22,22 @@ export interface SlotDef {
   z: number; // draw order (higher = front)
 }
 
-// Pre-defined slots (front-row larger, back-row smaller for depth)
+// Pre-defined slots (front-row larger, back-row smaller for depth).
+// y = character foot position (anchor at 0.87 = extends mostly upward).
+// Rows are spaced far enough apart to avoid overlap.
+// Live2D models are ~2500px internal height, so display height ≈ scale * 2500.
 export const SLOTS: SlotDef[] = [
-  // Back row (smaller)
-  { x: 0.20, y: 0.35, scale: 0.22, z: 0 },
-  { x: 0.50, y: 0.33, scale: 0.23, z: 0 },
-  { x: 0.80, y: 0.35, scale: 0.22, z: 0 },
-  // Mid row
-  { x: 0.15, y: 0.55, scale: 0.28, z: 1 },
-  { x: 0.50, y: 0.53, scale: 0.29, z: 1 },
-  { x: 0.85, y: 0.55, scale: 0.28, z: 1 },
-  // Front row (larger)
-  { x: 0.30, y: 0.75, scale: 0.35, z: 2 },
-  { x: 0.70, y: 0.75, scale: 0.35, z: 2 },
+  // Back row — small, high on canvas (y=0.28)
+  { x: 0.20, y: 0.28, scale: 0.06, z: 0 },
+  { x: 0.50, y: 0.26, scale: 0.07, z: 0 },
+  { x: 0.80, y: 0.28, scale: 0.06, z: 0 },
+  // Mid row — medium (y=0.52)
+  { x: 0.15, y: 0.52, scale: 0.09, z: 1 },
+  { x: 0.50, y: 0.50, scale: 0.10, z: 1 },
+  { x: 0.85, y: 0.52, scale: 0.09, z: 1 },
+  // Front row — largest (y=0.82)
+  { x: 0.30, y: 0.82, scale: 0.14, z: 2 },
+  { x: 0.70, y: 0.82, scale: 0.14, z: 2 },
 ];
 
 // ── Automatic animation defaults ────────────────────

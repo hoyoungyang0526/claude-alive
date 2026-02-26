@@ -8,7 +8,8 @@ const HOOK_EVENTS_TO_REGISTER = [
   'PreToolUse', 'PostToolUse', 'PostToolUseFailure',
   'PermissionRequest', 'Stop', 'Notification',
   'SubagentStart', 'SubagentStop', 'TaskCompleted',
-  'PreCompact',
+  'PreCompact', 'TeammateIdle', 'ConfigChange',
+  'WorktreeCreate', 'WorktreeRemove',
 ] as const;
 
 interface HookEntry {

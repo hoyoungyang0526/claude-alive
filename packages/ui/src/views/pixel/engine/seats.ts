@@ -14,10 +14,21 @@ export interface Seat {
 
 // Desk cluster definitions (must match tilemap.ts createDefaultOffice)
 const CLUSTERS: { zone: 'A' | 'B' | 'C' | 'D'; startCol: number; row: number }[] = [
+  // Zone A (top-left work area)
   { zone: 'A', startCol: 3, row: 3 },
-  { zone: 'B', startCol: 12, row: 3 },
-  { zone: 'C', startCol: 3, row: 8 },
-  { zone: 'D', startCol: 12, row: 8 },
+  { zone: 'A', startCol: 10, row: 3 },
+  { zone: 'A', startCol: 3, row: 7 },
+  { zone: 'A', startCol: 10, row: 7 },
+  // Zone B (top-right work area)
+  { zone: 'B', startCol: 24, row: 3 },
+  { zone: 'B', startCol: 31, row: 3 },
+  { zone: 'B', startCol: 24, row: 7 },
+  { zone: 'B', startCol: 31, row: 7 },
+  // Zone C (bottom-left work area)
+  { zone: 'C', startCol: 3, row: 15 },
+  { zone: 'C', startCol: 10, row: 15 },
+  { zone: 'C', startCol: 3, row: 19 },
+  { zone: 'C', startCol: 10, row: 19 },
 ];
 
 function isDeskOrComputer(tile: number): boolean {

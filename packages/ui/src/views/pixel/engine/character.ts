@@ -46,6 +46,8 @@ export interface Character extends Entity {
 
   // Speech bubble
   bubble: 'none' | 'waiting' | 'permission' | 'error';
+  bubbleText: string | null;
+  bubbleLarge: boolean;
 
   // Sub-agent distinction
   isSubAgent: boolean;
@@ -105,6 +107,8 @@ export function createCharacter(
     paletteIndex,
 
     bubble: 'none',
+    bubbleText: null,
+    bubbleLarge: false,
 
     isSubAgent,
     label,
@@ -144,6 +148,8 @@ export function updateCharacter(char: Character, dt: number, tileMap: TileMap): 
   }
 
   syncEntityPosition(char);
+  // Keep render fn in sync with latest module logic (fixes HMR stale closures)
+  char.render = makeRenderFn(char);
 }
 
 function updateWalking(char: Character, dt: number) {
@@ -313,6 +319,42 @@ export function setCharacterIdle(char: Character): void {
   char.animTimer = 0;
   char.wanderTimer = randomWanderTime();
   char.bubble = 'none';
+  char.bubbleText = null;
+  char.bubbleLarge = false;
+}
+
+/** Map agent state + tool info to anthropomorphic speech bubble text */
+export function getAnthropomorphicText(
+  state: string,
+  tool: string | null,
+  animation: string | null,
+): string | null {
+  switch (state) {
+    case 'active':
+      switch (animation) {
+        case 'reading':
+          return tool ? `${tool} 읽는 중...` : '읽는 중...';
+        case 'searching':
+          return '파일 찾는 중...';
+        case 'running':
+          return tool === 'Bash' ? '명령어 실행 중...' : '테스트 돌리는 중...';
+        case 'thinking':
+          return '음... 생각 중...';
+        case 'typing':
+        default:
+          return '열심히 코드 작성 중...';
+      }
+    case 'waiting':
+      return '허락 기다리는 중~';
+    case 'error':
+      return '뭔가 잘못됐다...!';
+    case 'listening':
+      return '듣고 있어요!';
+    case 'done':
+      return '작업 끝! 수고하셨습니다~';
+    default:
+      return null;
+  }
 }
 
 // ── Rendering ───────────────────────────────────────────────────────────
@@ -342,20 +384,19 @@ function makeRenderFn(char: Character): (ctx: CanvasRenderingContext2D, zoom: nu
       ctx.drawImage(sprite, 0, 0, w, h);
     }
 
-    // Name label above head (sub-agents with labels)
-    if (char.isSubAgent && char.label) {
-      drawNameLabel(ctx, char.label, w, zoom);
-    }
+    // Name label above head (all characters)
+    const labelName = char.label || char.sessionId.slice(0, 8);
+    const labelH = drawNameLabel(ctx, labelName, w, zoom);
 
-    // Speech bubble
-    if (char.bubble !== 'none') {
+    // Speech bubble (positioned above name label)
+    if (char.bubbleText) {
+      drawSpeechBubble(ctx, char.bubbleText, w, zoom, labelH, char.bubbleLarge);
+    } else if (char.bubble !== 'none') {
       drawBubble(ctx, char.bubble, w, zoom);
     }
 
-    // Click tooltip
-    if (char.showTooltip) {
-      drawTooltip(ctx, char, w, zoom);
-    }
+    // Tooltip (always visible)
+    drawTooltip(ctx, char, w, zoom);
   };
 }
 
@@ -379,12 +420,13 @@ function getCurrentSprite(char: Character): HTMLCanvasElement {
   }
 }
 
+/** Returns total height occupied above character (bgH + gap) */
 function drawNameLabel(
   ctx: CanvasRenderingContext2D,
   name: string,
   charWidth: number,
   zoom: number,
-) {
+): number {
   const fontSize = Math.max(8, 4 * zoom);
   ctx.font = `bold ${fontSize}px monospace`;
   ctx.textAlign = 'center';
@@ -407,6 +449,8 @@ function drawNameLabel(
   // Text
   ctx.fillStyle = '#e0e0e8';
   ctx.fillText(name, charWidth / 2, bgY + bgH - padY);
+
+  return bgH + 2 * zoom;
 }
 
 function drawBubble(
@@ -436,6 +480,62 @@ function drawBubble(
   ctx.textBaseline = 'middle';
   const icons: Record<string, string> = { waiting: '...', permission: '?', error: '!' };
   ctx.fillText(icons[type] ?? '', bx + bubbleSize / 2, by + bubbleSize / 2);
+}
+
+function drawSpeechBubble(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  charWidth: number,
+  zoom: number,
+  labelHeight: number,
+  large = false,
+) {
+  const baseFontSize = Math.max(7, 3.5 * zoom);
+  const fontSize = large ? baseFontSize * 2 : baseFontSize;
+  ctx.font = `${fontSize}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const textWidth = ctx.measureText(text).width;
+  const padX = 4 * zoom;
+  const padY = 3 * zoom;
+  const bubbleW = textWidth + padX * 2;
+  const bubbleH = fontSize + padY * 2;
+  const tailH = 3 * zoom;
+
+  const bx = charWidth / 2 - bubbleW / 2;
+  const by = -bubbleH - tailH - 10 * zoom - labelHeight;
+
+  // Bubble body (pixel-art: sharp corners)
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(bx, by, bubbleW, bubbleH);
+
+  // Border
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = Math.max(1, zoom * 0.5);
+  ctx.strokeRect(bx, by, bubbleW, bubbleH);
+
+  // Tail (small triangle pointing down)
+  const tailX = charWidth / 2;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.moveTo(tailX - 2 * zoom, by + bubbleH);
+  ctx.lineTo(tailX, by + bubbleH + tailH);
+  ctx.lineTo(tailX + 2 * zoom, by + bubbleH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tail border (left and right edges only)
+  ctx.strokeStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(tailX - 2 * zoom, by + bubbleH);
+  ctx.lineTo(tailX, by + bubbleH + tailH);
+  ctx.lineTo(tailX + 2 * zoom, by + bubbleH);
+  ctx.stroke();
+
+  // Text
+  ctx.fillStyle = '#333';
+  ctx.fillText(text, charWidth / 2, by + bubbleH / 2);
 }
 
 function drawTooltip(

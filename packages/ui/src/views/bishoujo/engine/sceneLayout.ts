@@ -22,6 +22,16 @@ const LAYOUT_PRIORITY: number[][] = [
 ];
 
 /**
+ * Scale multiplier when few agents are present — makes them more prominent.
+ */
+function getScaleBoost(agentCount: number): number {
+  if (agentCount === 1) return 2.0;
+  if (agentCount === 2) return 1.6;
+  if (agentCount === 3) return 1.3;
+  return 1.0;
+}
+
+/**
  * Assign slots + model names for a set of agents.
  * Returns a Map<sessionId, CharacterSlot>.
  */
@@ -31,12 +41,14 @@ export function assignSlots(sessionIds: string[]): Map<string, CharacterSlot> {
   if (count === 0) return result;
 
   const priority = LAYOUT_PRIORITY[count - 1] ?? LAYOUT_PRIORITY[LAYOUT_PRIORITY.length - 1]!;
+  const boost = getScaleBoost(count);
 
   for (let i = 0; i < count; i++) {
     const slotIndex = priority[i]!;
+    const base = SLOTS[slotIndex]!;
     result.set(sessionIds[i]!, {
       slotIndex,
-      def: SLOTS[slotIndex]!,
+      def: { ...base, scale: base.scale * boost },
       modelName: MODEL_NAMES[i % MODEL_NAMES.length]!,
     });
   }

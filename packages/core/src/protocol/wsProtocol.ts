@@ -1,13 +1,15 @@
-import type { AgentInfo, AgentState, ToolAnimation } from '../events/types.js';
+import type { AgentInfo, AgentState, CompletedSession, ToolAnimation } from '../events/types.js';
 import type { EventLogEntry } from '../state/sessionStore.js';
 
 export type WSServerMessage =
   | { type: 'agent:spawn'; agent: AgentInfo }
   | { type: 'agent:despawn'; sessionId: string }
-  | { type: 'agent:state'; sessionId: string; state: AgentState; tool: string | null; animation: ToolAnimation | null }
+  | { type: 'agent:state'; sessionId: string; state: AgentState; tool: string | null; animation: ToolAnimation | null; timestamp: number }
   | { type: 'agent:prompt'; sessionId: string; prompt: string }
+  | { type: 'agent:rename'; sessionId: string; name: string | null }
+  | { type: 'agent:completed'; session: CompletedSession }
   | { type: 'event:new'; entry: EventLogEntry }
-  | { type: 'snapshot'; agents: AgentInfo[]; recentEvents: EventLogEntry[] }
+  | { type: 'snapshot'; agents: AgentInfo[]; recentEvents: EventLogEntry[]; completedSessions: CompletedSession[] }
   | { type: 'system:heartbeat'; timestamp: number };
 
 export type WSClientMessage =

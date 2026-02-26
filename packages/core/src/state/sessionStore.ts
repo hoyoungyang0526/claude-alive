@@ -1,4 +1,4 @@
-import type { AgentInfo, AgentState, HookEventPayload } from '../events/types.js';
+import type { AgentInfo, AgentState, CompletedSession, HookEventPayload } from '../events/types.js';
 import { transition } from './agentFSM.js';
 import { extractToolDisplayName } from '../events/toolMapper.js';
 
@@ -14,11 +14,14 @@ export interface EventLogEntry {
 export class SessionStore {
   private agents = new Map<string, AgentInfo>();
   private eventLog: EventLogEntry[] = [];
+  private completedSessions: CompletedSession[] = [];
   private nextLogId = 1;
   private maxLogSize: number;
+  private maxCompletedSize: number;
 
-  constructor(maxLogSize = 1000) {
+  constructor(maxLogSize = 1000, maxCompletedSize = 50) {
     this.maxLogSize = maxLogSize;
+    this.maxCompletedSize = maxCompletedSize;
   }
 
   processEvent(payload: HookEventPayload): AgentInfo | null {
@@ -31,6 +34,10 @@ export class SessionStore {
     if (event === 'SessionEnd') {
       const agent = this.agents.get(sessionId);
       if (agent) {
+        // Record completion if agent was in done state
+        if (agent.state === 'done') {
+          this.addCompletedSession(agent);
+        }
         agent.state = 'despawning';
         agent.lastEvent = event;
         agent.lastEventTime = payload.timestamp;
@@ -154,6 +161,24 @@ export class SessionStore {
 
   getRecentEvents(count = 50): EventLogEntry[] {
     return this.eventLog.slice(-count);
+  }
+
+  getCompletedSessions(): CompletedSession[] {
+    return [...this.completedSessions];
+  }
+
+  private addCompletedSession(agent: AgentInfo): void {
+    this.completedSessions.push({
+      sessionId: agent.sessionId,
+      cwd: agent.cwd,
+      projectName: agent.projectName,
+      completedAt: Date.now(),
+      lastPrompt: agent.lastPrompt,
+      displayName: agent.displayName,
+    });
+    if (this.completedSessions.length > this.maxCompletedSize) {
+      this.completedSessions = this.completedSessions.slice(-this.maxCompletedSize);
+    }
   }
 
   private addLogEntry(payload: HookEventPayload, agentState: AgentState): void {
