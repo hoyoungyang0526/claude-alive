@@ -12,11 +12,14 @@
     "clean": "turbo run clean"
   },
   "devDependencies": {
+    "esbuild": "^0.27.3",
     "turbo": "^2",
     "typescript": "^5.7"
   },
   "packageManager": "pnpm@10.28.2",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

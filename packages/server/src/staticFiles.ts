@@ -17,8 +17,8 @@ const MIME_TYPES: Record<string, string> = {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-/** Default path: from server/dist/ -> ../../ui/dist */
-const DEFAULT_UI_DIST = resolve(__dirname, '..', '..', 'ui', 'dist');
+/** Default path: from server/dist/ -> ../../ui/dist, or env override for npm bundle */
+const DEFAULT_UI_DIST = process.env.__CLAUDE_ALIVE_UI_DIST ?? resolve(__dirname, '..', '..', 'ui', 'dist');
 
 export function createStaticHandler(uiDistPath?: string) {
   const distDir = uiDistPath ?? DEFAULT_UI_DIST;
