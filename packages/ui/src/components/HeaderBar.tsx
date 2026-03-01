@@ -1,16 +1,34 @@
 import { useTranslation } from 'react-i18next';
 
+type Page = 'dashboard' | 'gallery';
+
 interface HeaderBarProps {
-  onGalleryOpen: () => void;
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
 }
 
-export function HeaderBar({ onGalleryOpen }: HeaderBarProps) {
+export function HeaderBar({ currentPage, onNavigate }: HeaderBarProps) {
   const { t, i18n } = useTranslation();
   const isKo = i18n.language?.startsWith('ko');
 
   const toggleLang = () => {
     i18n.changeLanguage(isKo ? 'en' : 'ko');
   };
+
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    height: 28,
+    padding: '0 12px',
+    border: 'none',
+    borderBottom: active ? '2px solid var(--accent-purple)' : '2px solid transparent',
+    borderRadius: 0,
+    cursor: 'pointer',
+    fontSize: 12,
+    fontWeight: active ? 700 : 500,
+    fontFamily: 'inherit',
+    color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+    background: 'transparent',
+    transition: 'color 0.15s, border-color 0.15s',
+  });
 
   const btnStyle: React.CSSProperties = {
     height: 28,
@@ -49,17 +67,24 @@ export function HeaderBar({ onGalleryOpen }: HeaderBarProps) {
           fontWeight: 700,
           color: 'var(--text-primary)',
           letterSpacing: '-0.02em',
+          marginRight: 16,
         }}
       >
         claude-alive
       </span>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <button onClick={onGalleryOpen} style={btnStyle}>
-          {t('gallery.button')}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <button onClick={() => onNavigate('dashboard')} style={tabStyle(currentPage === 'dashboard')}>
+          {t('header.title')}
         </button>
+        <button onClick={() => onNavigate('gallery')} style={tabStyle(currentPage === 'gallery')}>
+          {t('gallery.title')}
+        </button>
+      </nav>
+
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
         <button onClick={toggleLang} style={btnStyle}>
-          {isKo ? 'EN' : '한'}
+          {isKo ? 'EN' : '\ud55c'}
         </button>
       </div>
     </div>
