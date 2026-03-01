@@ -30,6 +30,8 @@ export function getAnthropomorphicText(
       return t('bubble.listening');
     case 'done':
       return t('bubble.done');
+    case 'idle':
+      return t('bubble.idle');
     default:
       return null;
   }

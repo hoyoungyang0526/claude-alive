@@ -59,9 +59,10 @@ function groupByProject(agents: AgentInfo[]): ProjectGroupData[] {
 interface CompactCardProps {
   agent: AgentInfo;
   onRename?: (sessionId: string, name: string | null) => void;
+  onAgentClick?: (sessionId: string) => void;
 }
 
-function CompactAgentCard({ agent, onRename }: CompactCardProps) {
+function CompactAgentCard({ agent, onRename, onAgentClick }: CompactCardProps) {
   const { t } = useTranslation();
   const now = useNow();
   const timeSince = formatTimeSince(now, agent.lastEventTime, t);
@@ -84,11 +85,12 @@ function CompactAgentCard({ agent, onRename }: CompactCardProps) {
 
   return (
     <div
-      className="rounded-lg p-4 border transition-all duration-200 relative overflow-hidden"
+      className="rounded-lg p-4 border transition-all duration-200 relative overflow-hidden cursor-pointer hover:brightness-110"
       style={{
         background: 'var(--bg-card)',
         borderColor: agent.state === 'active' ? stateColor : 'var(--border-color)',
       }}
+      onClick={() => onAgentClick?.(agent.sessionId)}
     >
       <div className="flex items-center gap-3">
         <div
@@ -121,7 +123,7 @@ function CompactAgentCard({ agent, onRename }: CompactCardProps) {
             <div
               className="text-xs font-medium truncate cursor-pointer hover:underline"
               style={{ color: 'var(--text-primary)' }}
-              onClick={() => { setNameInput(agent.displayName ?? ''); setEditing(true); }}
+              onClick={(e) => { e.stopPropagation(); setNameInput(agent.displayName ?? ''); setEditing(true); }}
               title={t('agents.clickToRename')}
             >
               {displayLabel}
@@ -170,9 +172,10 @@ interface SidebarProjectGroupProps {
   cwd: string;
   agents: AgentInfo[];
   onRename?: (sessionId: string, name: string | null) => void;
+  onAgentClick?: (sessionId: string) => void;
 }
 
-function SidebarProjectGroup({ projectName, agents, onRename }: SidebarProjectGroupProps) {
+function SidebarProjectGroup({ projectName, agents, onRename, onAgentClick }: SidebarProjectGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
   const activeCount = agents.filter(a => a.state === 'active' || a.state === 'listening').length;
 
@@ -208,7 +211,7 @@ function SidebarProjectGroup({ projectName, agents, onRename }: SidebarProjectGr
       {!collapsed && (
         <div className="pl-4 pr-2 pb-3 space-y-2.5">
           {agents.map(agent => (
-            <CompactAgentCard key={agent.sessionId} agent={agent} onRename={onRename} />
+            <CompactAgentCard key={agent.sessionId} agent={agent} onRename={onRename} onAgentClick={onAgentClick} />
           ))}
         </div>
       )}
@@ -221,9 +224,10 @@ function SidebarProjectGroup({ projectName, agents, onRename }: SidebarProjectGr
 interface ProjectSidebarProps {
   agents: AgentInfo[];
   onRename?: (sessionId: string, name: string | null) => void;
+  onAgentClick?: (sessionId: string) => void;
 }
 
-export function ProjectSidebar({ agents, onRename }: ProjectSidebarProps) {
+export function ProjectSidebar({ agents, onRename, onAgentClick }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const projectGroups = useMemo(() => groupByProject(agents), [agents]);
 
@@ -264,6 +268,7 @@ export function ProjectSidebar({ agents, onRename }: ProjectSidebarProps) {
               cwd={group.cwd}
               agents={group.agents}
               onRename={onRename}
+              onAgentClick={onAgentClick}
             />
           ))
         )}

@@ -96,6 +96,7 @@
     "waiting": "Waiting for permission...",
     "error": "Something went wrong...!",
     "listening": "Listening!",
-    "done": "Done! Good work~"
+    "done": "Done! Good work~",
+    "idle": "Standing by..."
   }
 }

@@ -11,6 +11,7 @@ import {
 } from './engine/officeState';
 import { startToolActivity, setCharacterIdle } from './engine/character';
 import type { Entity } from './engine/renderer';
+import { TILE_SIZE, MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './engine/constants';
 import { OrgChartOverlay } from './components/OrgChartOverlay';
 
 const PixelCanvas = lazy(() => import('./components/PixelCanvas.tsx'));
@@ -127,6 +128,24 @@ export function PixelOfficePage() {
     }).catch(() => {});
   }, []);
 
+  const handleAgentClick = useCallback((sessionId: string) => {
+    const char = officeRef.current.characters.get(sessionId);
+    if (!char) return;
+    cameraRef.current = {
+      ...cameraRef.current,
+      x: char.tileX * TILE_SIZE + TILE_SIZE / 2,
+      y: char.tileY * TILE_SIZE + TILE_SIZE / 2,
+    };
+  }, []);
+
+  const handleZoom = useCallback((delta: number) => {
+    const cur = cameraRef.current.zoom;
+    cameraRef.current = {
+      ...cameraRef.current,
+      zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, cur + delta)),
+    };
+  }, []);
+
   // Game loop: 60fps update cycle
   useEffect(() => {
     let running = true;
@@ -152,7 +171,7 @@ export function PixelOfficePage() {
 
   return (
     <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
-      <ProjectSidebar agents={agentList} onRename={handleRename} />
+      <ProjectSidebar agents={agentList} onRename={handleRename} onAgentClick={handleAgentClick} />
 
       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <Suspense fallback={null}>
@@ -162,6 +181,44 @@ export function PixelOfficePage() {
             entities={entitiesRef}
           />
         </Suspense>
+
+        {/* Zoom controls */}
+        <div style={{
+          position: 'absolute',
+          top: 12,
+          right: 12,
+          zIndex: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+        }}>
+          {[
+            { label: '+', delta: ZOOM_STEP },
+            { label: '\u2212', delta: -ZOOM_STEP },
+          ].map(({ label, delta }) => (
+            <button
+              key={label}
+              onClick={() => handleZoom(delta)}
+              style={{
+                width: 32,
+                height: 32,
+                background: 'rgba(20, 20, 35, 0.8)',
+                border: '1px solid #333348',
+                borderRadius: 6,
+                color: '#e0e0e8',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 16,
+                fontWeight: 600,
+                lineHeight: 1,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         <OrgChartOverlay
           agents={agentList}
