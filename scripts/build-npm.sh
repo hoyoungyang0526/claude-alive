@@ -5,7 +5,10 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/npm-dist"
+VERSION=$(node -p "require('$ROOT/package.json').version")
 
+echo "Building claude-alive v$VERSION"
+echo ""
 echo "[1/5] Building all packages..."
 pnpm build
 
@@ -33,10 +36,10 @@ cp "$ROOT/LICENSE" "$OUT/"
 cp "$ROOT/README.md" "$OUT/"
 
 # Create package.json for npm
-cat > "$OUT/package.json" << 'PKGJSON'
+cat > "$OUT/package.json" << PKGJSON
 {
   "name": "claude-alive",
-  "version": "0.2.0",
+  "version": "'"$VERSION"'",
   "description": "Real-time animated UI for Claude Code sessions, powered by hooks",
   "license": "MIT",
   "type": "module",

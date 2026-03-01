@@ -367,6 +367,43 @@ claude   # Start any Claude Code session
 
 ---
 
+## Publishing / 배포
+
+### Version Management / 버전 관리
+
+The **single source of truth** for the version is `package.json` in the project root. The build script reads this version and injects it into the npm package automatically.
+
+버전의 **단일 소스**는 프로젝트 루트의 `package.json`입니다. 빌드 스크립트가 이 버전을 읽어 npm 패키지에 자동 반영합니다.
+
+### Release Commands / 릴리스 명령어
+
+```bash
+# Patch release (bug fixes): 0.2.0 → 0.2.1
+pnpm release:patch
+
+# Minor release (new features): 0.2.0 → 0.3.0
+pnpm release:minor
+
+# Major release (breaking changes): 0.2.0 → 1.0.0
+pnpm release:major
+```
+
+**EN:** Each release command automatically: bumps the version in `package.json`, builds the npm package, creates a git commit + tag (`v0.2.1`), and publishes to npmjs.com. After the script completes, push with `git push origin main --tags`.
+
+**KO:** 각 릴리스 명령은 자동으로: `package.json` 버전 업, npm 패키지 빌드, git 커밋 + 태그(`v0.2.1`) 생성, npmjs.com 발행을 수행합니다. 스크립트 완료 후 `git push origin main --tags`로 푸시하세요.
+
+### Versioning Policy / 버전 정책
+
+This project follows [Semantic Versioning](https://semver.org/):
+
+| Bump | When | 사용 시점 |
+|------|------|----------|
+| `patch` | Bug fixes, docs, internal refactors | 버그 수정, 문서, 내부 리팩토링 |
+| `minor` | New features, backward-compatible changes | 새 기능, 하위 호환 변경 |
+| `major` | Breaking changes to CLI or hook protocol | CLI 또는 훅 프로토콜 호환성 깨는 변경 |
+
+---
+
 ## Contributing / 기여
 
 1. Fork the repository
