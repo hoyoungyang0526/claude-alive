@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import type { WSServerMessage } from '@claude-alive/core';
 import { useWebSocket } from '../dashboard/hooks/useWebSocket.ts';
 import { ProjectSidebar } from '../unified/ProjectSidebar.tsx';
@@ -13,6 +13,8 @@ import { startToolActivity, setCharacterIdle } from './engine/character';
 import type { Entity } from './engine/renderer';
 import { TILE_SIZE, MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './engine/constants';
 import { OrgChartOverlay } from './components/OrgChartOverlay';
+import { AgentTimelinePanel } from './components/AgentTimelinePanel';
+import type { PromptEntry } from './components/AgentTimelinePanel';
 
 const PixelCanvas = lazy(() => import('./components/PixelCanvas.tsx'));
 
@@ -33,6 +35,9 @@ export function PixelOfficePage() {
   const officeRef = useRef(createOfficeState());
   const cameraRef = useRef(officeRef.current.camera);
   const entitiesRef = useRef<Entity[]>(getEntities(officeRef.current));
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const promptsRef = useRef<PromptEntry[]>([]);
+  const [, setPromptsVersion] = useState(0);
 
   // Stable callback ref for onRawMessage (avoids useWebSocket reconnects)
   const onRawRef = useRef<(msg: WSServerMessage) => void>(() => {});
@@ -110,6 +115,12 @@ export function PixelOfficePage() {
       case 'agent:prompt': {
         const char = office.characters.get(msg.sessionId);
         if (char) char.direction = 'down';
+        promptsRef.current = [...promptsRef.current, {
+          sessionId: msg.sessionId,
+          text: msg.prompt,
+          timestamp: Date.now(),
+        }];
+        setPromptsVersion(v => v + 1);
         break;
       }
     }
@@ -136,6 +147,7 @@ export function PixelOfficePage() {
       x: char.tileX * TILE_SIZE + TILE_SIZE / 2,
       y: char.tileY * TILE_SIZE + TILE_SIZE / 2,
     };
+    setSelectedAgentId(prev => prev === sessionId ? null : sessionId);
   }, []);
 
   const handleZoom = useCallback((delta: number) => {
@@ -226,18 +238,29 @@ export function PixelOfficePage() {
           camera={cameraRef}
         />
 
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 16,
-            left: 20,
-            right: 20,
-            zIndex: 10,
-            pointerEvents: 'auto',
-          }}
-        >
-          <NotificationBanner agents={agentList} />
-        </div>
+        {selectedAgentId && agents.get(selectedAgentId) && (
+          <AgentTimelinePanel
+            agent={agents.get(selectedAgentId)!}
+            events={events}
+            prompts={promptsRef.current}
+            onClose={() => setSelectedAgentId(null)}
+          />
+        )}
+
+        {!selectedAgentId && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              left: 20,
+              right: 20,
+              zIndex: 10,
+              pointerEvents: 'auto',
+            }}
+          >
+            <NotificationBanner agents={agentList} />
+          </div>
+        )}
       </div>
 
       <RightPanel events={events} agents={agentList} completedSessions={completedSessions} />

@@ -456,18 +456,18 @@ function drawSpeechBubble(
   labelHeight: number,
   large = false,
 ) {
-  const baseFontSize = Math.max(7, 3.5 * zoom);
+  const baseFontSize = Math.max(9, 5 * zoom);
   const fontSize = large ? baseFontSize * 2 : baseFontSize;
-  ctx.font = `${fontSize}px monospace`;
+  ctx.font = `bold ${fontSize}px monospace`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   const textWidth = ctx.measureText(text).width;
-  const padX = 4 * zoom;
-  const padY = 3 * zoom;
+  const padX = 6 * zoom;
+  const padY = 5 * zoom;
   const bubbleW = textWidth + padX * 2;
   const bubbleH = fontSize + padY * 2;
-  const tailH = 3 * zoom;
+  const tailH = 4 * zoom;
 
   const bx = charWidth / 2 - bubbleW / 2;
   const by = -bubbleH - tailH - 10 * zoom - labelHeight;
