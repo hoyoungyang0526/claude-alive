@@ -32,12 +32,12 @@ fi
 
 # 2. Bump version in root package.json
 OLD_VERSION=$(node -p "require('./package.json').version")
-NEW_VERSION=$(node -p "
+NEW_VERSION=$(node -e "
   const [major, minor, patch] = '$OLD_VERSION'.split('.').map(Number);
-  if ('$BUMP' === 'major') console.log((major+1)+'.0.0');
-  else if ('$BUMP' === 'minor') console.log(major+'.'+(minor+1)+'.0');
-  else console.log(major+'.'+minor+'.'+(patch+1));
-" | tail -1)
+  if ('$BUMP' === 'major') process.stdout.write((major+1)+'.0.0');
+  else if ('$BUMP' === 'minor') process.stdout.write(major+'.'+(minor+1)+'.0');
+  else process.stdout.write(major+'.'+minor+'.'+(patch+1));
+")
 
 echo "Releasing claude-alive: $OLD_VERSION → $NEW_VERSION ($BUMP)"
 echo ""
