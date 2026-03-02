@@ -10,6 +10,10 @@ All notable changes to claude-alive.
 -  auto-set subagent displayName from agent_type hook field
 -  redesign UI with Toss-style typography, colors, and spacing
 
+### Bug Fixes
+
+-  restore version and fix release script version calculation
+
 ### Documentation
 
 -  add dashboard screenshot to README
