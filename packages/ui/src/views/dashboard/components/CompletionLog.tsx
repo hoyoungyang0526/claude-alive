@@ -68,7 +68,7 @@ export function CompletionLog({ completedSessions }: CompletionLogProps) {
                 {session.projectName}
               </span>
               <span className="truncate flex-1" style={{ color: 'var(--text-secondary)' }}>
-                {session.displayName || 'General Agent'}
+                {session.displayName || t('agents.generalAgent')}
               </span>
               <span className="shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                 {formatTimeSince(now, session.completedAt, t)}

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { AgentInfo, AgentState } from '@claude-alive/core';
+import { useTranslation } from 'react-i18next';
+import type { AgentInfo } from '@claude-alive/core';
 import type { Character } from '../engine/character';
 import { getSpriteDataUrl } from '../utils/spriteToImage';
 
@@ -21,27 +22,11 @@ const STATE_BORDERS: Record<string, string> = {
   removed: 'var(--border-color)',
 };
 
-const STATE_LABELS: Record<string, string> = {
-  active: 'working',
-  idle: 'idle',
-  listening: 'listening',
-  spawning: 'spawning',
-  waiting: 'waiting...',
-  error: 'error!',
-  done: 'done',
-  despawning: 'leaving',
-  removed: 'gone',
-};
-
-function stateLabel(state: AgentState, tool: string | null): string {
-  if (state === 'active' && tool) return tool;
-  return STATE_LABELS[state] ?? state;
-}
-
 export function AgentNode({ agent, character, onClick }: AgentNodeProps) {
+  const { t } = useTranslation();
   const borderColor = STATE_BORDERS[agent.state] ?? '#333348';
-  const name = agent.displayName || 'General Agent';
-  const label = stateLabel(agent.state, agent.currentTool);
+  const name = agent.displayName || t('agents.generalAgent');
+  const label = (agent.state === 'active' && agent.currentTool) ? agent.currentTool : t(`pixelStates.${agent.state}`, { defaultValue: agent.state });
 
   const spriteUrl = useMemo(() => {
     if (!character) return null;

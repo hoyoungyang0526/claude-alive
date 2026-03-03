@@ -1,5 +1,7 @@
 import { useRef, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AgentInfo, EventLogEntry } from '@claude-alive/core';
+import type { TFunction } from 'i18next';
 
 export interface PromptEntry {
   sessionId: string;
@@ -46,20 +48,20 @@ function formatTime(ts: number): string {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function summarizeEvent(entry: EventLogEntry): string | null {
+function summarizeEvent(entry: EventLogEntry, t: TFunction): string | null {
   switch (entry.event) {
-    case 'SessionStart': return 'Session started';
-    case 'SessionEnd': return 'Session ended';
-    case 'PreToolUse': return entry.tool ? `Using ${entry.tool}` : 'Using tool';
-    case 'PostToolUse': return entry.tool ? `Finished ${entry.tool}` : 'Tool finished';
-    case 'PostToolUseFailure': return entry.tool ? `Failed: ${entry.tool}` : 'Tool failed';
-    case 'PermissionRequest': return 'Waiting for permission';
-    case 'Stop': return 'Stopped';
-    case 'SubagentStart': return 'Sub-agent spawned';
-    case 'SubagentStop': return 'Sub-agent stopped';
-    case 'TaskCompleted': return 'Task completed';
-    case 'Notification': return 'Notification';
-    case 'PreCompact': return 'Context compacting';
+    case 'SessionStart': return t('timeline.sessionStarted');
+    case 'SessionEnd': return t('timeline.sessionEnded');
+    case 'PreToolUse': return entry.tool ? t('timeline.usingTool', { tool: entry.tool }) : t('timeline.usingToolGeneric');
+    case 'PostToolUse': return entry.tool ? t('timeline.finishedTool', { tool: entry.tool }) : t('timeline.toolFinished');
+    case 'PostToolUseFailure': return entry.tool ? t('timeline.failedTool', { tool: entry.tool }) : t('timeline.toolFailed');
+    case 'PermissionRequest': return t('timeline.waitingPermission');
+    case 'Stop': return t('timeline.stopped');
+    case 'SubagentStart': return t('timeline.subAgentSpawned');
+    case 'SubagentStop': return t('timeline.subAgentStopped');
+    case 'TaskCompleted': return t('timeline.taskCompleted');
+    case 'Notification': return t('timeline.notification');
+    case 'PreCompact': return t('timeline.contextCompacting');
     default: return entry.event;
   }
 }
@@ -84,6 +86,7 @@ function collapseEvents(items: TimelineItem[]): TimelineItem[] {
 }
 
 export function AgentTimelinePanel({ agent, events, prompts, onClose }: AgentTimelinePanelProps) {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const agentEvents = useMemo(
@@ -125,7 +128,7 @@ export function AgentTimelinePanel({ agent, events, prompts, onClose }: AgentTim
     return { working, success, failed };
   }, [agentEvents]);
 
-  const displayName = agent.displayName || agent.projectName || 'General Agent';
+  const displayName = agent.displayName || agent.projectName || t('agents.generalAgent');
   const stateColor = STATE_COLORS[agent.state] ?? '#8888a0';
 
   return (
@@ -194,9 +197,9 @@ export function AgentTimelinePanel({ agent, events, prompts, onClose }: AgentTim
         flexShrink: 0,
       }}>
         {[
-          { label: 'Working', count: stats.working, bg: 'rgba(88,166,255,0.12)', color: 'var(--accent-blue)' },
-          { label: 'Success', count: stats.success, bg: 'rgba(63,185,80,0.12)', color: 'var(--accent-green)' },
-          { label: 'Failed', count: stats.failed, bg: 'rgba(248,81,73,0.12)', color: 'var(--accent-red)' },
+          { label: t('timeline.working'), count: stats.working, bg: 'rgba(88,166,255,0.12)', color: 'var(--accent-blue)' },
+          { label: t('timeline.success'), count: stats.success, bg: 'rgba(63,185,80,0.12)', color: 'var(--accent-green)' },
+          { label: t('timeline.failed'), count: stats.failed, bg: 'rgba(248,81,73,0.12)', color: 'var(--accent-red)' },
         ].map(({ label, count, bg, color }) => (
           <span key={label} style={{
             fontSize: 11,
@@ -220,7 +223,7 @@ export function AgentTimelinePanel({ agent, events, prompts, onClose }: AgentTim
       }}>
         {timeline.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14, paddingTop: 36 }}>
-            No events yet
+            {t('timeline.noEvents')}
           </div>
         ) : (
           timeline.map((item, i) => {
@@ -250,7 +253,7 @@ export function AgentTimelinePanel({ agent, events, prompts, onClose }: AgentTim
             }
 
             const { entry } = item;
-            const summary = summarizeEvent(entry);
+            const summary = summarizeEvent(entry, t);
             if (!summary) return null;
 
             const isError = entry.event === 'PostToolUseFailure';

@@ -89,7 +89,7 @@ function CompactAgentCard({ agent, character, onRename, onAgentClick }: CompactC
   const now = useNow();
   const timeSince = formatTimeSince(now, agent.lastEventTime, t);
   const stateColor = STATE_COLORS[agent.state] ?? 'var(--text-secondary)';
-  const displayLabel = agent.displayName || agent.projectName || 'General Agent';
+  const displayLabel = agent.displayName || agent.projectName || t('agents.generalAgent');
   const spriteUrl = useMemo(() => getSpriteThumbnail(character, agent.sessionId), [character?.paletteIndex, agent.sessionId]);
 
   const [editing, setEditing] = useState(false);
@@ -177,7 +177,7 @@ function CompactAgentCard({ agent, character, onRename, onAgentClick }: CompactC
                 if (e.key === 'Enter') handleRename();
                 if (e.key === 'Escape') { setEditing(false); setNameInput(agent.displayName ?? ''); }
               }}
-              placeholder={agent.projectName || 'General Agent'}
+              placeholder={agent.projectName || t('agents.generalAgent')}
             />
           ) : (
             <div

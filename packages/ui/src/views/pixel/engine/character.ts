@@ -8,6 +8,7 @@ import { findPath, isWalkable } from './tilemap';
 import { TILE_SIZE, CHAR_WIDTH, CHAR_HEIGHT, WALK_SPEED } from './constants';
 import { SUB_AGENT_WIDTH, SUB_AGENT_HEIGHT } from './sprites';
 import { renderMatrixEffect, getEffectCharacterOpacity } from './matrixEffect';
+import i18n from '@claude-alive/i18n';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -384,7 +385,7 @@ function makeRenderFn(char: Character): (ctx: CanvasRenderingContext2D, zoom: nu
     }
 
     // Name label above head (all characters)
-    const labelName = char.label || 'General Agent';
+    const labelName = char.label || i18n.t('agents.generalAgent');
     const labelH = drawNameLabel(ctx, labelName, w, zoom);
 
     // Speech bubble (positioned above name label)
@@ -545,7 +546,7 @@ function drawTooltip(
   charWidth: number,
   zoom: number,
 ) {
-  const name = char.label || 'General Agent';
+  const name = char.label || i18n.t('agents.generalAgent');
   const tool = char.tooltipTool;
   const text = tool ? `${name}: ${tool}` : name;
 

@@ -1,5 +1,6 @@
 import { Component, lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
+import i18n from '@claude-alive/i18n';
 import { HeaderBar } from './components/HeaderBar.tsx';
 
 const PixelOfficePage = lazy(() =>
@@ -16,12 +17,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     if (this.state.hasError) {
       return (
         <div style={{ padding: 40, color: '#e5534b', fontFamily: 'monospace', textAlign: 'center' }}>
-          <p>Something went wrong. Check the browser console for details.</p>
+          <p>{i18n.t('error.somethingWentWrong')}</p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
             style={{ marginTop: 12, padding: '6px 16px', cursor: 'pointer' }}
           >
-            Retry
+            {i18n.t('error.retry')}
           </button>
         </div>
       );

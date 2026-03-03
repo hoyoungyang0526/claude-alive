@@ -2,16 +2,35 @@
 
 ## 프로젝트 개요
 
-claude-alive: Claude Code 에이전트 모니터링 대시보드. 실시간 WebSocket으로 에이전트 상태를 추적하고 시각화.
+claude-alive: Claude Code 에이전트 모니터링 대시보드. 실시간 WebSocket으로 에이전트 상태를 추적하고 픽셀 오피스로 시각화.
 
 ## 기술 스택
 
 - **Monorepo**: pnpm + Turborepo
 - **프론트엔드**: React 19, Vite 6, Tailwind CSS 4, TypeScript 5.7
+- **서버**: Node.js + ws (WebSocket), Zod (port 3141)
 - **통신**: WebSocket 실시간 스트리밍 (`useWebSocket` hook)
-- **i18n**: i18next (EN/KO)
+- **i18n**: i18next (EN/KO), 모든 UI 텍스트 번역 필수
+- **배포**: npm 패키지 배포 (`scripts/release.sh`)
+
+## 패키지 구조
+
+```
+packages/
+├── cli/      # claude-alive CLI (설치/관리)
+├── core/     # 공유 타입, AgentFSM, SessionStore, 프로토콜
+├── hooks/    # Claude Code 훅 등록 (17개 이벤트 → HTTP POST)
+├── i18n/     # i18next 설정 + EN/KO 번역 파일
+├── server/   # HTTP + WebSocket 서버 (port 3141)
+└── ui/       # React 프론트엔드 (Vite)
+```
 
 ## 아키텍처
+
+### 데이터 흐름
+```
+Claude Code Hook → HTTP POST → Server → WebSocket → UI (React)
+```
 
 ### 통합 레이아웃 (UnifiedView)
 3-Column 구조:
@@ -32,13 +51,30 @@ claude-alive: Claude Code 에이전트 모니터링 대시보드. 실시간 WebS
 
 ### 주요 데이터 타입 (core 패키지)
 - `AgentInfo` — sessionId, state, parentId (서브에이전트 판별), displayName, cwd, currentTool
+- `AgentState` — spawning | idle | listening | active | waiting | error | done | despawning | removed
 - `WSServerMessage` — snapshot / agent:spawn / agent:despawn / agent:state / agent:prompt / event:new
+- `HookEventName` — 17개 훅 이벤트 (SessionStart, PreToolUse, SubagentStart 등)
+
+### i18n 규칙
+- 모든 UI 텍스트는 `packages/i18n/src/locales/{en,ko}.json` 번역 키 사용 필수
+- React 컴포넌트: `useTranslation()` 훅 → `t('key')`
+- 비-React 코드 (canvas, class component): `import i18n from '@claude-alive/i18n'` → `i18n.t('key')`
+- 하드코딩된 문자열 금지 (fallback 포함)
 
 ## 빌드 & 실행
 
 ```bash
 pnpm install
 pnpm run dev          # 전체 dev 서버
-pnpm run build --filter=@claude-alive/ui   # UI 빌드
+pnpm run build        # 전체 빌드
+pnpm run build --filter=@claude-alive/ui   # UI만 빌드
 pnpm --filter=@claude-alive/ui exec tsc --noEmit      # 타입 체크
+```
+
+## 릴리즈
+
+```bash
+pnpm run release:patch   # 0.x.Y → 패치 버전 업
+pnpm run release:minor   # 0.X.0 → 마이너 버전 업
+pnpm run release:major   # X.0.0 → 메이저 버전 업
 ```

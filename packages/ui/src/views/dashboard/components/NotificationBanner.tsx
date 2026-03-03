@@ -21,7 +21,7 @@ export function NotificationBanner({ agents }: NotificationBannerProps) {
     <div className="space-y-3">
       {attentionAgents.map((agent) => {
         const config = ATTENTION_STATES[agent.state]!;
-        const label = agent.displayName || agent.projectName || 'General Agent';
+        const label = agent.displayName || agent.projectName || t('agents.generalAgent');
         return (
           <div
             key={agent.sessionId}
