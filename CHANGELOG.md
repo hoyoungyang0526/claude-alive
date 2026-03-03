@@ -2,7 +2,13 @@
 
 All notable changes to claude-alive.
 
-## Unreleased (2026-03-02)
+## Unreleased (2026-03-03)
+
+### Bug Fixes
+
+-  replace all hardcoded English strings with translation keys
+
+## v0.2.2 (2026-03-02)
 
 ### New Features
 
@@ -22,7 +28,6 @@ All notable changes to claude-alive.
 ### Maintenance
 
 -  remove all Live2D references
-
 ## v0.2.0 (2026-03-01)
 
 ### New Features
