@@ -217,6 +217,7 @@ export class SessionStore {
       completedAt: Date.now(),
       lastPrompt: agent.lastPrompt,
       displayName: agent.displayName,
+      tokenUsage: agent.tokenUsage,
     });
     if (this.completedSessions.length > this.maxCompletedSize) {
       this.completedSessions = this.completedSessions.slice(-this.maxCompletedSize);

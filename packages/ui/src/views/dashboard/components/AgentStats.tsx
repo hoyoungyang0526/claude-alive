@@ -1,14 +1,17 @@
 import { useTranslation } from 'react-i18next';
-import type { AgentStats as AgentStatsType } from '@claude-alive/core';
+import type { AgentInfo, AgentStats as AgentStatsType } from '@claude-alive/core';
 
 interface AgentStatsProps {
   stats: AgentStatsType | null;
+  agents: AgentInfo[];
 }
 
-export function AgentStats({ stats }: AgentStatsProps) {
+export function AgentStats({ stats, agents }: AgentStatsProps) {
   const { t } = useTranslation();
 
   if (!stats || stats.totalAgents === 0) return null;
+
+  const totalTokens = agents.reduce((sum, a) => sum + (a.tokenUsage?.totalTokens ?? 0), 0);
 
   const topTools = Object.entries(stats.toolCallsByName)
     .sort((a, b) => b[1] - a[1])
@@ -72,6 +75,17 @@ export function AgentStats({ stats }: AgentStatsProps) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {totalTokens > 0 && (
+          <div>
+            <div className="text-[11px] font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              {t('tokens.title')}
+            </div>
+            <span className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {totalTokens.toLocaleString()} {t('tokens.total')}
+            </span>
           </div>
         )}
       </div>

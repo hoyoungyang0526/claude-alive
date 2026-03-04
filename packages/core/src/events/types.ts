@@ -55,6 +55,7 @@ export interface CompletedSession {
   completedAt: number;
   lastPrompt: string | null;
   displayName: string | null;
+  tokenUsage?: TokenUsage | null;
 }
 
 export interface AgentInfo {

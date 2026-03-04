@@ -131,6 +131,16 @@
     "calls": "calls",
     "noData": "No activity yet"
   },
+  "tokens": {
+    "title": "Token Usage",
+    "input": "Input",
+    "output": "Output",
+    "cacheCreation": "Cache Write",
+    "cacheRead": "Cache Read",
+    "total": "Total",
+    "apiCalls": "API Calls",
+    "model": "Model"
+  },
   "bubble": {
     "readingTool": "Reading {{tool}}...",
     "reading": "Reading...",

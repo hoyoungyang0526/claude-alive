@@ -24,7 +24,7 @@ export function RightPanel({ events, agents, completedSessions, stats }: RightPa
     >
       {/* Agent Stats */}
       <div className="shrink-0 p-4 pb-0">
-        <AgentStats stats={stats} />
+        <AgentStats stats={stats} agents={agents} />
       </div>
 
       {/* Activity Pulse */}

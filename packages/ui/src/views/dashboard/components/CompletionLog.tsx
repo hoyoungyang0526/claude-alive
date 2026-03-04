@@ -73,6 +73,14 @@ export function CompletionLog({ completedSessions }: CompletionLogProps) {
               <span className="shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                 {formatTimeSince(now, session.completedAt, t)}
               </span>
+              {session.tokenUsage && (
+                <span
+                  className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-medium"
+                  style={{ background: 'var(--accent-blue)15', color: 'var(--accent-blue)' }}
+                >
+                  {session.tokenUsage.totalTokens.toLocaleString()} tok
+                </span>
+              )}
             </div>
           ))
         )}
