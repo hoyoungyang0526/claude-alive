@@ -122,6 +122,15 @@
     "despawning": "leaving",
     "removed": "gone"
   },
+  "stats": {
+    "title": "Agent Stats",
+    "active": "Active",
+    "total": "Total",
+    "subagentTypes": "Sub-agent Types",
+    "topTools": "Top Tools",
+    "calls": "calls",
+    "noData": "No activity yet"
+  },
   "bubble": {
     "readingTool": "Reading {{tool}}...",
     "reading": "Reading...",

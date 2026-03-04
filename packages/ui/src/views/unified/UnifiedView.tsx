@@ -11,7 +11,7 @@ const API_BASE = `${window.location.protocol}//${window.location.hostname}:${win
 export function UnifiedView() {
   const { t } = useTranslation();
 
-  const { agents, events, completedSessions } = useWebSocket(WS_URL);
+  const { agents, events, completedSessions, stats } = useWebSocket(WS_URL);
   const agentList = Array.from(agents.values());
 
   const handleRename = useCallback((sessionId: string, name: string | null) => {
@@ -57,7 +57,7 @@ export function UnifiedView() {
         </div>
       </div>
 
-      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} />
+      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} stats={stats} />
     </div>
   );
 }

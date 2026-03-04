@@ -1,15 +1,17 @@
-import type { AgentInfo, CompletedSession, EventLogEntry } from '@claude-alive/core';
+import type { AgentInfo, CompletedSession, EventLogEntry, AgentStats as AgentStatsType } from '@claude-alive/core';
 import { ActivityPulse } from '../dashboard/components/ActivityPulse.tsx';
 import { EventStream } from '../dashboard/components/EventStream.tsx';
 import { CompletionLog } from '../dashboard/components/CompletionLog.tsx';
+import { AgentStats } from '../dashboard/components/AgentStats.tsx';
 
 interface RightPanelProps {
   events: EventLogEntry[];
   agents: AgentInfo[];
   completedSessions: CompletedSession[];
+  stats: AgentStatsType | null;
 }
 
-export function RightPanel({ events, agents, completedSessions }: RightPanelProps) {
+export function RightPanel({ events, agents, completedSessions, stats }: RightPanelProps) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
@@ -20,6 +22,11 @@ export function RightPanel({ events, agents, completedSessions }: RightPanelProp
         borderLeft: '1px solid var(--border-color)',
       }}
     >
+      {/* Agent Stats */}
+      <div className="shrink-0 p-4 pb-0">
+        <AgentStats stats={stats} />
+      </div>
+
       {/* Activity Pulse */}
       <div className="shrink-0 p-4 pb-0">
         <ActivityPulse events={events} />

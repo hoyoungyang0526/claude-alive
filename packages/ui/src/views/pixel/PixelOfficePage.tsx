@@ -140,7 +140,7 @@ export function PixelOfficePage() {
 
   const stableOnRaw = useCallback((msg: WSServerMessage) => onRawRef.current(msg), []);
 
-  const { agents, events, completedSessions } = useWebSocket(WS_URL, stableOnRaw);
+  const { agents, events, completedSessions, stats } = useWebSocket(WS_URL, stableOnRaw);
   const agentList = Array.from(agents.values());
 
   const handleRename = useCallback((sessionId: string, name: string | null) => {
@@ -319,7 +319,7 @@ export function PixelOfficePage() {
         </div>
       </div>
 
-      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} />
+      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} stats={stats} />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { AgentInfo, AgentState, CompletedSession, ToolAnimation, EventLogEntry, WSServerMessage } from '@claude-alive/core';
+import type { AgentInfo, AgentState, CompletedSession, ToolAnimation, EventLogEntry, WSServerMessage, AgentStats } from '@claude-alive/core';
 
 export interface DashboardState {
   agents: Map<string, AgentInfo>;
   events: EventLogEntry[];
   completedSessions: CompletedSession[];
+  stats: AgentStats | null;
   connected: boolean;
 }
 
@@ -13,6 +14,7 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
     agents: new Map(),
     events: [],
     completedSessions: [],
+    stats: null,
     connected: false,
   });
   const wsRef = useRef<WebSocket | null>(null);
@@ -49,7 +51,7 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
             }
             events = msg.recentEvents;
             completedSessions = msg.completedSessions ?? [];
-            break;
+            return { agents, events, completedSessions, stats: msg.stats ?? null, connected: true };
           }
           case 'agent:spawn': {
             agents.set(msg.agent.sessionId, msg.agent);
@@ -111,13 +113,16 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
             }
             break;
           }
+          case 'stats:update': {
+            return { ...prev, stats: msg.stats };
+          }
           case 'system:heartbeat': {
             // Connection alive
             break;
           }
         }
 
-        return { agents, events, completedSessions, connected: true };
+        return { agents, events, completedSessions, stats: prev.stats, connected: true };
       });
     };
   }, [url, onRawMessage]);

@@ -122,6 +122,15 @@
     "despawning": "종료 중",
     "removed": "제거됨"
   },
+  "stats": {
+    "title": "에이전트 통계",
+    "active": "활성",
+    "total": "전체",
+    "subagentTypes": "서브에이전트 유형",
+    "topTools": "주요 도구",
+    "calls": "호출",
+    "noData": "아직 활동 없음"
+  },
   "bubble": {
     "readingTool": "{{tool}} 읽는 중...",
     "reading": "읽는 중...",
