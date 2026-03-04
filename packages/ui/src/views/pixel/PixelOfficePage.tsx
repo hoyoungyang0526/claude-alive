@@ -15,6 +15,7 @@ import { TILE_SIZE, MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } from './engine/constants';
 import { OrgChartOverlay } from './components/OrgChartOverlay';
 import { AgentTimelinePanel } from './components/AgentTimelinePanel';
 import type { PromptEntry } from './components/AgentTimelinePanel';
+import { ChatOverlay } from '../chat/ChatOverlay.tsx';
 
 const PixelCanvas = lazy(() => import('./components/PixelCanvas.tsx'));
 
@@ -40,6 +41,7 @@ export function PixelOfficePage() {
   const promptsRef = useRef<PromptEntry[]>([]);
   const [, setPromptsVersion] = useState(0);
   const [, setCharVersion] = useState(0);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Stable callback ref for onRawMessage (avoids useWebSocket reconnects)
   const onRawRef = useRef<(msg: WSServerMessage) => void>(() => {});
@@ -317,6 +319,36 @@ export function PixelOfficePage() {
         >
           <NotificationBanner agents={agentList} />
         </div>
+
+        {/* Chat toggle button */}
+        <button
+          onClick={() => setChatOpen(prev => !prev)}
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            right: 16,
+            zIndex: 20,
+            width: 40,
+            height: 40,
+            display: chatOpen ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(22, 27, 34, 0.85)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 10,
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 16,
+            transition: 'all 0.2s ease',
+          }}
+          title="Chat"
+        >
+          ▣
+        </button>
+
+        {/* Chat overlay */}
+        <ChatOverlay open={chatOpen} onToggle={() => setChatOpen(false)} />
       </div>
 
       <RightPanel events={events} agents={agentList} completedSessions={completedSessions} stats={stats} />
