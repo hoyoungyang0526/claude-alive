@@ -26,11 +26,11 @@ export function AgentStats({ stats, agents }: AgentStatsProps) {
       style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
     >
       <div
-        className="px-5 py-4 text-[13px] font-semibold border-b flex items-center justify-between"
+        className="px-4 py-3 text-[12px] font-semibold border-b flex items-center justify-between"
         style={{ color: 'var(--text-secondary)', borderColor: 'var(--border-color)', background: 'var(--bg-secondary)' }}
       >
         <span>{t('stats.title')}</span>
-        <div className="flex items-center gap-3 text-[11px]">
+        <div className="flex items-center gap-3 text-[10px]">
           <span>
             <span style={{ color: 'var(--accent-green)' }}>{stats.activeAgents}</span>
             {' '}{t('stats.active')}
@@ -42,7 +42,7 @@ export function AgentStats({ stats, agents }: AgentStatsProps) {
         </div>
       </div>
 
-      <div className="px-5 py-4 space-y-3">
+      <div className="px-4 py-3 space-y-2.5">
         {subagentTypes.length > 0 && (
           <div>
             <div className="text-[11px] font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>

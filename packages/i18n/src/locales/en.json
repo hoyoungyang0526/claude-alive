@@ -4,7 +4,8 @@
     "agentCount_one": "{{count}} agent",
     "agentCount_other": "{{count}} agents",
     "toggleLeftPanel": "Toggle left panel",
-    "toggleRightPanel": "Toggle right panel"
+    "toggleRightPanel": "Toggle right panel",
+    "toggleChat": "Toggle chat"
   },
   "agents": {
     "noAgentsYet": "No agents yet",
@@ -44,7 +45,7 @@
     "taskCompleted": "Task completed"
   },
   "activity": {
-    "title": "Activity (last 60s)",
+    "title": "Recent Activity",
     "tools": "tools",
     "prompts": "prompts",
     "permissions": "permissions",

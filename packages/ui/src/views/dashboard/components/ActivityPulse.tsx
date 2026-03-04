@@ -83,34 +83,29 @@ export function ActivityPulse({ events }: ActivityPulseProps) {
       style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
     >
       <div
-        className="px-5 py-4 text-[13px] font-semibold border-b flex items-center justify-between"
+        className="px-4 py-3 text-[12px] font-semibold border-b flex items-center justify-between"
         style={{
           color: 'var(--text-secondary)',
           borderColor: 'var(--border-color)',
           background: 'var(--bg-secondary)',
         }}
       >
-        <span>{t('activity.title')}</span>
-        <div className="flex items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: CATEGORY_COLORS.tool }} />
-            {t('activity.tools')}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: CATEGORY_COLORS.prompt }} />
-            {t('activity.prompts')}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: CATEGORY_COLORS.permission }} />
-            {t('activity.permissions')}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: CATEGORY_COLORS.system }} />
-            {t('activity.system')}
-          </span>
+        <span className="shrink-0">{t('activity.title')}</span>
+        <div className="flex items-center gap-2 text-[10px] shrink-0">
+          {([
+            ['tool', CATEGORY_COLORS.tool],
+            ['prompt', CATEGORY_COLORS.prompt],
+            ['permission', CATEGORY_COLORS.permission],
+            ['system', CATEGORY_COLORS.system],
+          ] as const).map(([key, color]) => (
+            <span key={key} className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-sm inline-block" style={{ background: color }} />
+              {t(`activity.${key === 'tool' ? 'tools' : key === 'prompt' ? 'prompts' : key === 'permission' ? 'permissions' : 'system'}`)}
+            </span>
+          ))}
         </div>
       </div>
-      <div className="px-5 py-5 flex items-end gap-px" style={{ height: MAX_HEIGHT + 32 }}>
+      <div className="px-4 py-4 flex items-end gap-px" style={{ height: MAX_HEIGHT + 24 }}>
         {bars.map((bar, i) => (
           <div
             key={i}

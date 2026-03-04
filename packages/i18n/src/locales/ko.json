@@ -4,7 +4,8 @@
     "agentCount_one": "에이전트 {{count}}개",
     "agentCount_other": "에이전트 {{count}}개",
     "toggleLeftPanel": "왼쪽 패널 토글",
-    "toggleRightPanel": "오른쪽 패널 토글"
+    "toggleRightPanel": "오른쪽 패널 토글",
+    "toggleChat": "채팅 토글"
   },
   "agents": {
     "noAgentsYet": "아직 에이전트가 없습니다",
@@ -44,7 +45,7 @@
     "taskCompleted": "작업 완료"
   },
   "activity": {
-    "title": "활동 (최근 60초)",
+    "title": "최근 활동",
     "tools": "도구",
     "prompts": "프롬프트",
     "permissions": "권한",

@@ -36,9 +36,11 @@ function mapToolAnimation(animation: string | null): 'typing' | 'reading' {
 interface PixelOfficePageProps {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  chatOpen?: boolean;
+  onChatOpenChange?: (open: boolean) => void;
 }
 
-export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true }: PixelOfficePageProps) {
+export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, chatOpen = false, onChatOpenChange }: PixelOfficePageProps) {
   const officeRef = useRef(createOfficeState());
   const cameraRef = useRef(officeRef.current.camera);
   const cameraTargetRef = useRef<{ x: number; y: number } | null>(null);
@@ -47,7 +49,6 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true }:
   const promptsRef = useRef<PromptEntry[]>([]);
   const [, setPromptsVersion] = useState(0);
   const [, setCharVersion] = useState(0);
-  const [chatOpen, setChatOpen] = useState(false);
   const terminalHandlerRef = useRef<TerminalEventHandler | null>(null);
 
   // Stable callback ref for onRawMessage (avoids useWebSocket reconnects)
@@ -351,7 +352,7 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true }:
 
         {/* Chat toggle button */}
         <button
-          onClick={() => setChatOpen(prev => !prev)}
+          onClick={() => onChatOpenChange?.(!chatOpen)}
           style={{
             position: 'absolute',
             bottom: 16,
@@ -379,7 +380,7 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true }:
         {/* Chat overlay */}
         <ChatOverlay
           open={chatOpen}
-          onToggle={() => setChatOpen(false)}
+          onToggle={() => onChatOpenChange?.(false)}
           onSpawn={handleTerminalSpawn}
           onInput={handleTerminalInput}
           onResize={handleTerminalResize}

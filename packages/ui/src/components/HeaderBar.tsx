@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 interface HeaderBarProps {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  chatOpen?: boolean;
   onToggleLeftPanel?: () => void;
   onToggleRightPanel?: () => void;
+  onToggleChat?: () => void;
 }
 
-export function HeaderBar({ leftPanelOpen = true, rightPanelOpen = true, onToggleLeftPanel, onToggleRightPanel }: HeaderBarProps) {
+export function HeaderBar({ leftPanelOpen = true, rightPanelOpen = true, chatOpen = false, onToggleLeftPanel, onToggleRightPanel, onToggleChat }: HeaderBarProps) {
   const { t, i18n } = useTranslation();
   const isKo = i18n.language?.startsWith('ko');
 
@@ -46,19 +48,6 @@ export function HeaderBar({ leftPanelOpen = true, rightPanelOpen = true, onToggl
         borderBottom: '1px solid var(--border-color)',
       }}
     >
-      {/* Left panel toggle */}
-      <button
-        onClick={onToggleLeftPanel}
-        style={iconButtonStyle}
-        aria-label={t('header.toggleLeftPanel')}
-        title={t('header.toggleLeftPanel')}
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2" />
-          <rect x="1" y="1" width="5" height="14" rx="1" fill={leftPanelOpen ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-      </button>
-
       <span
         style={{
           fontSize: 16,
@@ -88,6 +77,32 @@ export function HeaderBar({ leftPanelOpen = true, rightPanelOpen = true, onToggl
           }}
         >
           {isKo ? 'EN' : '한'}
+        </button>
+
+        {/* Left panel toggle */}
+        <button
+          onClick={onToggleLeftPanel}
+          style={iconButtonStyle}
+          aria-label={t('header.toggleLeftPanel')}
+          title={t('header.toggleLeftPanel')}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="1" y="1" width="5" height="14" rx="1" fill={leftPanelOpen ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+        </button>
+
+        {/* Chat/terminal toggle */}
+        <button
+          onClick={onToggleChat}
+          style={iconButtonStyle}
+          aria-label={t('header.toggleChat')}
+          title={t('header.toggleChat')}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="1" y="10" width="14" height="5" rx="1" fill={chatOpen ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.2" />
+          </svg>
         </button>
 
         {/* Right panel toggle */}
