@@ -141,12 +141,6 @@
     "apiCalls": "API Calls",
     "model": "Model"
   },
-  "terminal": {
-    "title": "Terminal",
-    "newTab": "New",
-    "close": "Close",
-    "maxSessions": "Max sessions reached"
-  },
   "chat": {
     "title": "Chat",
     "placeholder": "Send a message...",

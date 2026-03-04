@@ -141,12 +141,6 @@
     "apiCalls": "API 호출",
     "model": "모델"
   },
-  "terminal": {
-    "title": "터미널",
-    "newTab": "새 탭",
-    "close": "닫기",
-    "maxSessions": "최대 세션 수 초과"
-  },
   "chat": {
     "title": "Chat",
     "placeholder": "메시지를 입력하세요...",
