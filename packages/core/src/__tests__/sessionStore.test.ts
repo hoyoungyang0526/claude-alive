@@ -248,4 +248,28 @@ describe('SessionStore', () => {
       expect(store.getAgent('sess-1')!.transcriptPath).toBe('/tmp/transcript.jsonl');
     });
   });
+
+  describe('toolCallCount', () => {
+    it('increments toolCallCount on PreToolUse', () => {
+      store.processEvent(makePayload('SessionStart', 'sess-1'));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Write' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Bash' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Write' }));
+      expect(store.getAgent('sess-1')!.toolCallCount).toBe(3);
+    });
+
+    it('tracks per-tool counts', () => {
+      store.processEvent(makePayload('SessionStart', 'sess-1'));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Write' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Bash' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Write' }));
+      expect(store.getAgent('sess-1')!.toolCallCounts).toEqual({ Write: 2, Bash: 1 });
+    });
+
+    it('starts at 0', () => {
+      store.processEvent(makePayload('SessionStart', 'sess-1'));
+      expect(store.getAgent('sess-1')!.toolCallCount).toBe(0);
+      expect(store.getAgent('sess-1')!.toolCallCounts).toEqual({});
+    });
+  });
 });

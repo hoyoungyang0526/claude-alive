@@ -80,4 +80,8 @@ export interface AgentInfo {
   lastPrompt: string | null;
   /** Accumulated list of unique tools used */
   toolsUsed: string[];
+  /** Total tool call count (including duplicates) */
+  toolCallCount: number;
+  /** Per-tool call counts */
+  toolCallCounts: Record<string, number>;
 }

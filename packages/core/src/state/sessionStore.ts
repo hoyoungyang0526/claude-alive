@@ -84,6 +84,12 @@ export class SessionStore {
     agent.lastEventTime = payload.timestamp;
     agent.totalEvents++;
 
+    if (event === 'PreToolUse' && toolName) {
+      agent.toolCallCount++;
+      const displayName = extractToolDisplayName(toolName);
+      agent.toolCallCounts[displayName] = (agent.toolCallCounts[displayName] ?? 0) + 1;
+    }
+
     // Capture transcript path if provided
     if (data.transcript_path && !agent.transcriptPath) {
       agent.transcriptPath = data.transcript_path;
@@ -143,6 +149,8 @@ export class SessionStore {
       totalEvents: 0,
       lastPrompt: null,
       toolsUsed: [],
+      toolCallCount: 0,
+      toolCallCounts: {},
     };
     this.agents.set(sessionId, agent);
     this.addLogEntry(
