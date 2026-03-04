@@ -5,7 +5,7 @@ import type { WSServerMessage, WSClientMessage } from '@claude-alive/core';
 const MAX_CLIENTS = 50;
 
 export interface WSBroadcasterOptions {
-  getSnapshot: () => { agents: unknown[]; recentEvents: unknown[]; completedSessions: unknown[] };
+  getSnapshot: () => { agents: unknown[]; recentEvents: unknown[]; completedSessions: unknown[]; stats: unknown };
   maxClients?: number;
 }
 

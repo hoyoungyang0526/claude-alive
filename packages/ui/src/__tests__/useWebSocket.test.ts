@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useWebSocket } from '../views/dashboard/hooks/useWebSocket.js';
-import type { WSServerMessage, AgentInfo } from '@claude-alive/core';
+import type { WSServerMessage, AgentInfo, AgentStats } from '@claude-alive/core';
+
+const emptyStats: AgentStats = { totalAgents: 0, activeAgents: 0, subagentsByType: {}, toolCallsByName: {} };
 
 // --- Mock WebSocket ---
 type WSHandler = (event: { data: string }) => void;
@@ -56,6 +58,8 @@ function mockAgent(sessionId: string, overrides: Partial<AgentInfo> = {}): Agent
     totalEvents: 0,
     lastPrompt: null,
     toolsUsed: [],
+    toolCallCount: 0,
+    toolCallCounts: {},
     ...overrides,
   };
 }
@@ -95,7 +99,7 @@ describe('useWebSocket', () => {
         type: 'snapshot',
         agents: [mockAgent('snap-1'), mockAgent('snap-2')],
         recentEvents: [],
-        completedSessions: [],
+        completedSessions: [], stats: emptyStats,
       });
     });
 
@@ -110,7 +114,7 @@ describe('useWebSocket', () => {
 
     const ws = MockWebSocket.instances[0]!;
     act(() => {
-      ws.simulateMessage({ type: 'snapshot', agents: [], recentEvents: [], completedSessions: [] });
+      ws.simulateMessage({ type: 'snapshot', agents: [], recentEvents: [], completedSessions: [], stats: emptyStats });
     });
     act(() => {
       ws.simulateMessage({ type: 'agent:spawn', agent: mockAgent('new-1') });
@@ -130,7 +134,7 @@ describe('useWebSocket', () => {
         type: 'snapshot',
         agents: [mockAgent('del-1')],
         recentEvents: [],
-        completedSessions: [],
+        completedSessions: [], stats: emptyStats,
       });
     });
     expect(result.current.agents.size).toBe(1);
@@ -151,7 +155,7 @@ describe('useWebSocket', () => {
         type: 'snapshot',
         agents: [mockAgent('state-1')],
         recentEvents: [],
-        completedSessions: [],
+        completedSessions: [], stats: emptyStats,
       });
     });
 
@@ -183,7 +187,7 @@ describe('useWebSocket', () => {
         type: 'snapshot',
         agents: [mockAgent('prompt-1')],
         recentEvents: [],
-        completedSessions: [],
+        completedSessions: [], stats: emptyStats,
       });
     });
 
@@ -208,7 +212,7 @@ describe('useWebSocket', () => {
         type: 'snapshot',
         agents: [mockAgent('name-1')],
         recentEvents: [],
-        completedSessions: [],
+        completedSessions: [], stats: emptyStats,
       });
     });
 
@@ -229,7 +233,7 @@ describe('useWebSocket', () => {
 
     const ws = MockWebSocket.instances[0]!;
     act(() => {
-      ws.simulateMessage({ type: 'snapshot', agents: [mockAgent('ev-1')], recentEvents: [], completedSessions: [] });
+      ws.simulateMessage({ type: 'snapshot', agents: [mockAgent('ev-1')], recentEvents: [], completedSessions: [], stats: emptyStats });
     });
 
     act(() => {
@@ -253,7 +257,7 @@ describe('useWebSocket', () => {
         type: 'snapshot',
         agents: [mockAgent('tools-1')],
         recentEvents: [],
-        completedSessions: [],
+        completedSessions: [], stats: emptyStats,
       });
     });
 
@@ -287,7 +291,7 @@ describe('useWebSocket', () => {
 
     const ws = MockWebSocket.instances[0]!;
     act(() => {
-      ws.simulateMessage({ type: 'snapshot', agents: [], recentEvents: [], completedSessions: [] });
+      ws.simulateMessage({ type: 'snapshot', agents: [], recentEvents: [], completedSessions: [], stats: emptyStats });
     });
     act(() => {
       ws.simulateMessage({

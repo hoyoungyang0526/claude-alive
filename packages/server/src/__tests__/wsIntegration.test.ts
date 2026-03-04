@@ -17,6 +17,7 @@ function getSnapshot() {
     agents: store.getAllAgents(),
     recentEvents: store.getRecentEvents(100),
     completedSessions: store.getCompletedSessions(),
+    stats: store.getStats(),
   };
 }
 
@@ -132,6 +133,7 @@ beforeAll(async () => {
       return ok;
     },
     removeAgent: (id) => store.removeAgent(id),
+    getStats: () => store.getStats(),
   });
   broadcaster = new WSBroadcaster(httpServer, { getSnapshot, maxClients: 50 });
   baseUrl = await new Promise<string>((resolve) => {

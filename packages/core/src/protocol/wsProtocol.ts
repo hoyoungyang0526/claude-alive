@@ -1,5 +1,5 @@
 import type { AgentInfo, AgentState, CompletedSession, ToolAnimation } from '../events/types.js';
-import type { EventLogEntry } from '../state/sessionStore.js';
+import type { AgentStats, EventLogEntry } from '../state/sessionStore.js';
 
 export type WSServerMessage =
   | { type: 'agent:spawn'; agent: AgentInfo }
@@ -9,7 +9,8 @@ export type WSServerMessage =
   | { type: 'agent:rename'; sessionId: string; name: string | null }
   | { type: 'agent:completed'; session: CompletedSession }
   | { type: 'event:new'; entry: EventLogEntry }
-  | { type: 'snapshot'; agents: AgentInfo[]; recentEvents: EventLogEntry[]; completedSessions: CompletedSession[] }
+  | { type: 'stats:update'; stats: AgentStats }
+  | { type: 'snapshot'; agents: AgentInfo[]; recentEvents: EventLogEntry[]; completedSessions: CompletedSession[]; stats: AgentStats }
   | { type: 'system:heartbeat'; timestamp: number };
 
 export type WSClientMessage =

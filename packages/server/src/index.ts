@@ -18,6 +18,7 @@ function getSnapshot() {
     agents: store.getAllAgents(),
     recentEvents: store.getRecentEvents(100),
     completedSessions: store.getCompletedSessions(),
+    stats: store.getStats(),
   };
 }
 
@@ -74,6 +75,8 @@ function onEvent(payload: HookEventPayload): void {
   if (recentEvents.length > 0) {
     broadcaster.broadcast({ type: 'event:new', entry: recentEvents[recentEvents.length - 1]! });
   }
+
+  broadcaster.broadcast({ type: 'stats:update', stats: store.getStats() });
 }
 
 function renameAgent(sessionId: string, name: string | null): boolean {
@@ -97,7 +100,7 @@ function removeAgent(sessionId: string): boolean {
   return ok;
 }
 
-const httpServer = createHttpServer({ onEvent, getSnapshot, renameAgent, removeAgent });
+const httpServer = createHttpServer({ onEvent, getSnapshot, renameAgent, removeAgent, getStats: () => store.getStats() });
 const broadcaster = new WSBroadcaster(httpServer, { getSnapshot });
 
 httpServer.listen(PORT, () => {

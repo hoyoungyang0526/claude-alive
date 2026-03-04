@@ -61,6 +61,7 @@ export interface HttpRouterOptions {
   getSnapshot: () => object;
   renameAgent: (sessionId: string, name: string | null) => boolean;
   removeAgent: (sessionId: string) => boolean;
+  getStats: () => object;
   /** Path to the UI dist directory. Defaults to ../../ui/dist relative to server dist. */
   uiDistPath?: string;
 }
@@ -117,7 +118,7 @@ function sendJson(res: ServerResponse, status: number, data: unknown, req?: Inco
 }
 
 export function createHttpServer(options: HttpRouterOptions) {
-  const { onEvent, getSnapshot, renameAgent, removeAgent, uiDistPath } = options;
+  const { onEvent, getSnapshot, renameAgent, removeAgent, getStats, uiDistPath } = options;
   const serveStatic = createStaticHandler(uiDistPath);
 
   const server = createServer(async (req, res) => {
@@ -186,6 +187,11 @@ export function createHttpServer(options: HttpRouterOptions) {
     if (req.method === 'GET' && url.pathname === '/api/events') {
       const snapshot = getSnapshot() as { recentEvents?: unknown };
       sendJson(res, 200, snapshot.recentEvents ?? [], req);
+      return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/stats') {
+      sendJson(res, 200, getStats(), req);
       return;
     }
 
