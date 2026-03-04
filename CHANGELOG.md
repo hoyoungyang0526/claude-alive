@@ -2,24 +2,7 @@
 
 All notable changes to claude-alive.
 
-## v0.4.0 (2026-03-04)
 
-### New Features
-
-- add collapsible left/right sidebars with Cursor-style toggle buttons in HeaderBar
-- add terminal working directory picker when creating new tabs
-- add --dangerously-skip-permissions toggle option for terminal sessions
-- spawn Claude through login shell to fix hook execution errors in PTY
-
-### Bug Fixes
-
-- fix zoom-in button hidden behind fixed HeaderBar (add marginTop: 56)
-- fix node-pty compatibility with Node.js v25 (upgrade to 1.2.0-beta.11)
-- fix duplicate React key errors in EventStream (race between snapshot and event:new)
-
-### Internationalization
-
-- add EN/KO translations for sidebar toggles, terminal picker, and permissions option
 
 ## v0.3.1 (2026-03-04)
 
