@@ -272,4 +272,32 @@ describe('SessionStore', () => {
       expect(store.getAgent('sess-1')!.toolCallCounts).toEqual({});
     });
   });
+
+  describe('getStats', () => {
+    it('returns aggregate stats', () => {
+      store.processEvent(makePayload('SessionStart', 'sess-1'));
+      store.processEvent(makePayload('SubagentStart', 'sess-1', { agent_id: 'sub-1', agent_type: 'Explore' }));
+      store.processEvent(makePayload('SubagentStart', 'sess-1', { agent_id: 'sub-2', agent_type: 'Explore' }));
+      store.processEvent(makePayload('SubagentStart', 'sess-1', { agent_id: 'sub-3', agent_type: 'Plan' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Write' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Bash' }));
+      store.processEvent(makePayload('PreToolUse', 'sess-1', { tool_name: 'Write' }));
+
+      const stats = store.getStats();
+      expect(stats.totalAgents).toBe(4);
+      expect(stats.activeAgents).toBe(4);
+      expect(stats.subagentsByType).toEqual({ Explore: 2, Plan: 1 });
+      expect(stats.toolCallsByName['Write']).toBe(2);
+      expect(stats.toolCallsByName['Bash']).toBe(1);
+    });
+
+    it('excludes despawning/removed agents from activeAgents', () => {
+      store.processEvent(makePayload('SessionStart', 'sess-1'));
+      store.processEvent(makePayload('SessionStart', 'sess-2'));
+      store.processEvent(makePayload('SessionEnd', 'sess-2'));
+      const stats = store.getStats();
+      expect(stats.totalAgents).toBe(2);
+      expect(stats.activeAgents).toBe(1);
+    });
+  });
 });

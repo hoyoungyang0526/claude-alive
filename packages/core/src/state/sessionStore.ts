@@ -16,6 +16,13 @@ export interface EventLogEntry {
   agentState: AgentState;
 }
 
+export interface AgentStats {
+  totalAgents: number;
+  activeAgents: number;
+  subagentsByType: Record<string, number>;
+  toolCallsByName: Record<string, number>;
+}
+
 export class SessionStore {
   private agents = new Map<string, AgentInfo>();
   private eventLog: EventLogEntry[] = [];
@@ -178,6 +185,27 @@ export class SessionStore {
 
   getCompletedSessions(): CompletedSession[] {
     return [...this.completedSessions];
+  }
+
+  getStats(): AgentStats {
+    const agents = this.getAllAgents();
+    const subagentsByType: Record<string, number> = {};
+    const toolCallsByName: Record<string, number> = {};
+    let activeAgents = 0;
+
+    for (const agent of agents) {
+      if (agent.state !== 'despawning' && agent.state !== 'removed') {
+        activeAgents++;
+      }
+      if (agent.parentId && agent.displayName) {
+        subagentsByType[agent.displayName] = (subagentsByType[agent.displayName] ?? 0) + 1;
+      }
+      for (const [tool, count] of Object.entries(agent.toolCallCounts)) {
+        toolCallsByName[tool] = (toolCallsByName[tool] ?? 0) + count;
+      }
+    }
+
+    return { totalAgents: agents.length, activeAgents, subagentsByType, toolCallsByName };
   }
 
   private addCompletedSession(agent: AgentInfo): void {
