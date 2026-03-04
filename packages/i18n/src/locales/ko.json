@@ -141,6 +141,12 @@
     "apiCalls": "API 호출",
     "model": "모델"
   },
+  "terminal": {
+    "title": "터미널",
+    "newTab": "새 탭",
+    "close": "닫기",
+    "maxSessions": "최대 세션 수 초과"
+  },
   "bubble": {
     "readingTool": "{{tool}} 읽는 중...",
     "reading": "읽는 중...",

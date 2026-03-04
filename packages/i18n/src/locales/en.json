@@ -141,6 +141,12 @@
     "apiCalls": "API Calls",
     "model": "Model"
   },
+  "terminal": {
+    "title": "Terminal",
+    "newTab": "New",
+    "close": "Close",
+    "maxSessions": "Max sessions reached"
+  },
   "bubble": {
     "readingTool": "Reading {{tool}}...",
     "reading": "Reading...",
