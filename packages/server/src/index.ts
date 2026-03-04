@@ -1,8 +1,9 @@
 import { SessionStore, parseTranscriptTokens } from '@claude-alive/core';
 import type { HookEventPayload } from '@claude-alive/core';
+import type { WebSocket } from 'ws';
 import { createHttpServer } from './httpRouter.js';
 import { WSBroadcaster } from './wsServer.js';
-import { ClaudeChat } from './claudeChat.js';
+import { ClaudeTerminal } from './claudeTerminal.js';
 import { loadNames, getNames, saveName, removeName } from './nameStore.js';
 
 const PORT = parseInt(process.env.CLAUDE_ALIVE_PORT ?? '3141', 10);
@@ -112,18 +113,56 @@ function removeAgent(sessionId: string): boolean {
   return ok;
 }
 
-const claudeChat = new ClaudeChat();
+// Per-client, per-tab terminal instances
+const terminals = new Map<WebSocket, Map<string, ClaudeTerminal>>();
+
+function getOrCreateTabMap(ws: WebSocket): Map<string, ClaudeTerminal> {
+  let tabMap = terminals.get(ws);
+  if (!tabMap) {
+    tabMap = new Map();
+    terminals.set(ws, tabMap);
+  }
+  return tabMap;
+}
 
 const httpServer = createHttpServer({ onEvent, getSnapshot, renameAgent, removeAgent, getStats: () => store.getStats() });
 const broadcaster = new WSBroadcaster({
   getSnapshot,
   onClientMessage: (ws, msg) => {
-    if (msg.type === 'chat:send') {
-      claudeChat.send(msg.message, {
-        onChunk: (text, sessionId) => broadcaster.send(ws, { type: 'chat:chunk', text, sessionId }),
-        onEnd: (sessionId, costUsd) => broadcaster.send(ws, { type: 'chat:end', sessionId, costUsd }),
-        onError: (error, sessionId) => broadcaster.send(ws, { type: 'chat:error', error, sessionId }),
-      });
+    if (msg.type === 'terminal:spawn') {
+      const tabMap = getOrCreateTabMap(ws);
+      if (tabMap.has(msg.tabId)) return; // already exists
+      const term = new ClaudeTerminal();
+      tabMap.set(msg.tabId, term);
+      term.spawn(
+        (data) => { broadcaster.send(ws, { type: 'terminal:output', tabId: msg.tabId, data }); },
+        80,
+        24,
+        (exitCode) => { broadcaster.send(ws, { type: 'terminal:exited', tabId: msg.tabId, exitCode }); },
+        msg.cwd,
+        msg.skipPermissions,
+      );
+    } else if (msg.type === 'terminal:input') {
+      const term = terminals.get(ws)?.get(msg.tabId);
+      if (term) term.write(msg.data);
+    } else if (msg.type === 'terminal:resize') {
+      const term = terminals.get(ws)?.get(msg.tabId);
+      if (term) term.resize(msg.cols, msg.rows);
+    } else if (msg.type === 'terminal:close') {
+      const tabMap = terminals.get(ws);
+      const term = tabMap?.get(msg.tabId);
+      if (term) {
+        term.destroy();
+        tabMap!.delete(msg.tabId);
+      }
+    }
+  },
+  onClientDisconnect: (ws) => {
+    const tabMap = terminals.get(ws);
+    if (tabMap) {
+      for (const term of tabMap.values()) term.destroy();
+      tabMap.clear();
+      terminals.delete(ws);
     }
   },
 });
@@ -150,7 +189,7 @@ httpServer.listen(PORT, () => {
 
 process.on('SIGINT', () => {
   console.log('\n[server] shutting down...');
-  claudeChat.destroy();
+  // terminals cleaned up via onClientDisconnect
   for (const timer of despawnTimers.values()) clearTimeout(timer);
   despawnTimers.clear();
   broadcaster.close();

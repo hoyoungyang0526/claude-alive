@@ -2,7 +2,9 @@
   "header": {
     "title": "claude-alive",
     "agentCount_one": "{{count}} agent",
-    "agentCount_other": "{{count}} agents"
+    "agentCount_other": "{{count}} agents",
+    "toggleLeftPanel": "Toggle left panel",
+    "toggleRightPanel": "Toggle right panel"
   },
   "agents": {
     "noAgentsYet": "No agents yet",
@@ -141,14 +143,22 @@
     "apiCalls": "API Calls",
     "model": "Model"
   },
+  "terminal": {
+    "newTab": "New tab",
+    "tabLabel": "Terminal {{n}}",
+    "exited": "Exited",
+    "selectWorkingDir": "Select working directory",
+    "customPathPlaceholder": "~/path/to/project",
+    "customPathHint": "Enter a path and press Enter, or select a project above",
+    "skipPermissions": "Skip permissions (--dangerously-skip-permissions)",
+    "skipPermissionsWarning": "Claude will execute all tools without asking for permission."
+  },
   "chat": {
     "title": "Chat",
     "placeholder": "Send a message...",
     "send": "Send",
     "you": "You",
-    "agent": "Agent",
-    "streaming": "Thinking...",
-    "error": "Error: {{message}}"
+    "agent": "Agent"
   },
   "bubble": {
     "readingTool": "Reading {{tool}}...",

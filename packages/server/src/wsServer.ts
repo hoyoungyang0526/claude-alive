@@ -9,6 +9,7 @@ export interface WSBroadcasterOptions {
   getSnapshot: () => { agents: unknown[]; recentEvents: unknown[]; completedSessions: unknown[]; stats: unknown };
   maxClients?: number;
   onClientMessage?: (ws: WebSocket, msg: WSClientMessage) => void;
+  onClientDisconnect?: (ws: WebSocket) => void;
 }
 
 export class WSBroadcaster {
@@ -18,11 +19,13 @@ export class WSBroadcaster {
   private getSnapshot: WSBroadcasterOptions['getSnapshot'];
   private maxClients: number;
   private onClientMessage?: WSBroadcasterOptions['onClientMessage'];
+  private onClientDisconnect?: WSBroadcasterOptions['onClientDisconnect'];
 
   constructor(options: WSBroadcasterOptions) {
     this.getSnapshot = options.getSnapshot;
     this.maxClients = options.maxClients ?? MAX_CLIENTS;
     this.onClientMessage = options.onClientMessage;
+    this.onClientDisconnect = options.onClientDisconnect;
     this.wss = new WebSocketServer({ noServer: true });
 
     this.wss.on('connection', (ws) => {
@@ -52,6 +55,7 @@ export class WSBroadcaster {
 
       ws.on('close', () => {
         this.clients.delete(ws);
+        this.onClientDisconnect?.(ws);
         console.log(`[ws] client disconnected (${this.clients.size} total)`);
       });
     });

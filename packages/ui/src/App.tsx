@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense } from 'react';
+import { Component, lazy, Suspense, useState } from 'react';
 import type { ReactNode } from 'react';
 import i18n from '@claude-alive/i18n';
 import { HeaderBar } from './components/HeaderBar.tsx';
@@ -32,13 +32,21 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 }
 
 export default function App() {
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <HeaderBar />
-      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+      <HeaderBar
+        leftPanelOpen={leftPanelOpen}
+        rightPanelOpen={rightPanelOpen}
+        onToggleLeftPanel={() => setLeftPanelOpen(prev => !prev)}
+        onToggleRightPanel={() => setRightPanelOpen(prev => !prev)}
+      />
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', marginTop: 56 }}>
         <ErrorBoundary>
           <Suspense fallback={null}>
-            <PixelOfficePage />
+            <PixelOfficePage leftPanelOpen={leftPanelOpen} rightPanelOpen={rightPanelOpen} />
           </Suspense>
         </ErrorBoundary>
       </div>

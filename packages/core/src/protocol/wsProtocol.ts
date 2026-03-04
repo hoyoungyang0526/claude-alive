@@ -12,11 +12,13 @@ export type WSServerMessage =
   | { type: 'stats:update'; stats: AgentStats }
   | { type: 'snapshot'; agents: AgentInfo[]; recentEvents: EventLogEntry[]; completedSessions: CompletedSession[]; stats: AgentStats }
   | { type: 'system:heartbeat'; timestamp: number }
-  | { type: 'chat:chunk'; text: string; sessionId: string }
-  | { type: 'chat:end'; sessionId: string; costUsd?: number }
-  | { type: 'chat:error'; error: string; sessionId: string | null };
+  | { type: 'terminal:output'; tabId: string; data: string }
+  | { type: 'terminal:exited'; tabId: string; exitCode: number };
 
 export type WSClientMessage =
   | { type: 'ping' }
   | { type: 'request:snapshot' }
-  | { type: 'chat:send'; message: string };
+  | { type: 'terminal:spawn'; tabId: string; cwd?: string; skipPermissions?: boolean }
+  | { type: 'terminal:input'; tabId: string; data: string }
+  | { type: 'terminal:resize'; tabId: string; cols: number; rows: number }
+  | { type: 'terminal:close'; tabId: string };

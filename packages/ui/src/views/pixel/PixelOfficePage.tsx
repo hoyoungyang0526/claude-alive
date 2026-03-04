@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import type { WSServerMessage } from '@claude-alive/core';
 import { useWebSocket } from '../dashboard/hooks/useWebSocket.ts';
 import { ProjectSidebar } from '../unified/ProjectSidebar.tsx';
@@ -16,7 +16,7 @@ import { OrgChartOverlay } from './components/OrgChartOverlay';
 import { AgentTimelinePanel } from './components/AgentTimelinePanel';
 import type { PromptEntry } from './components/AgentTimelinePanel';
 import { ChatOverlay } from '../chat/ChatOverlay.tsx';
-import type { ChatEventHandler } from '../chat/ChatOverlay.tsx';
+import type { TerminalEventHandler } from '../chat/ChatOverlay.tsx';
 
 const PixelCanvas = lazy(() => import('./components/PixelCanvas.tsx'));
 
@@ -33,7 +33,12 @@ function mapToolAnimation(animation: string | null): 'typing' | 'reading' {
   }
 }
 
-export function PixelOfficePage() {
+interface PixelOfficePageProps {
+  leftPanelOpen?: boolean;
+  rightPanelOpen?: boolean;
+}
+
+export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true }: PixelOfficePageProps) {
   const officeRef = useRef(createOfficeState());
   const cameraRef = useRef(officeRef.current.camera);
   const cameraTargetRef = useRef<{ x: number; y: number } | null>(null);
@@ -43,7 +48,7 @@ export function PixelOfficePage() {
   const [, setPromptsVersion] = useState(0);
   const [, setCharVersion] = useState(0);
   const [chatOpen, setChatOpen] = useState(false);
-  const chatHandlerRef = useRef<ChatEventHandler | null>(null);
+  const terminalHandlerRef = useRef<TerminalEventHandler | null>(null);
 
   // Stable callback ref for onRawMessage (avoids useWebSocket reconnects)
   const onRawRef = useRef<(msg: WSServerMessage) => void>(() => {});
@@ -139,10 +144,9 @@ export function PixelOfficePage() {
         }
         break;
       }
-      case 'chat:chunk':
-      case 'chat:end':
-      case 'chat:error':
-        chatHandlerRef.current?.(msg);
+      case 'terminal:output':
+      case 'terminal:exited':
+        terminalHandlerRef.current?.(msg);
         break;
     }
   };
@@ -151,9 +155,22 @@ export function PixelOfficePage() {
 
   const { agents, events, completedSessions, stats, send } = useWebSocket(WS_URL, stableOnRaw);
   const agentList = Array.from(agents.values());
+  const projectPaths = useMemo(() => [...new Set(agentList.map(a => a.cwd))], [agentList]);
 
-  const handleChatSend = useCallback((message: string) => {
-    send({ type: 'chat:send', message });
+  const handleTerminalSpawn = useCallback((tabId: string, cwd?: string, skipPermissions?: boolean) => {
+    send({ type: 'terminal:spawn', tabId, cwd, skipPermissions });
+  }, [send]);
+
+  const handleTerminalInput = useCallback((tabId: string, data: string) => {
+    send({ type: 'terminal:input', tabId, data });
+  }, [send]);
+
+  const handleTerminalResize = useCallback((tabId: string, cols: number, rows: number) => {
+    send({ type: 'terminal:resize', tabId, cols, rows });
+  }, [send]);
+
+  const handleTerminalClose = useCallback((tabId: string) => {
+    send({ type: 'terminal:close', tabId });
   }, [send]);
 
   const handleRename = useCallback((sessionId: string, name: string | null) => {
@@ -238,6 +255,7 @@ export function PixelOfficePage() {
         characters={officeRef.current.characters}
         onRename={handleRename}
         onAgentClick={handleAgentClick}
+        collapsed={!leftPanelOpen}
       />
 
       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
@@ -255,7 +273,7 @@ export function PixelOfficePage() {
           position: 'absolute',
           top: 16,
           right: 16,
-          zIndex: 20,
+          zIndex: 30,
           display: 'flex',
           flexDirection: 'column',
           gap: 6,
@@ -362,12 +380,16 @@ export function PixelOfficePage() {
         <ChatOverlay
           open={chatOpen}
           onToggle={() => setChatOpen(false)}
-          onSend={handleChatSend}
-          chatEventRef={chatHandlerRef}
+          onSpawn={handleTerminalSpawn}
+          onInput={handleTerminalInput}
+          onResize={handleTerminalResize}
+          onClose={handleTerminalClose}
+          terminalEventRef={terminalHandlerRef}
+          projectPaths={projectPaths}
         />
       </div>
 
-      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} stats={stats} />
+      <RightPanel events={events} agents={agentList} completedSessions={completedSessions} stats={stats} collapsed={!rightPanelOpen} />
     </div>
   );
 }

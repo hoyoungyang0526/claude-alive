@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@claude-alive/core": "workspace:*",
+    "node-pty": "1.2.0-beta.11",
     "ws": "^8",
     "zod": "^4.3.6"
   },

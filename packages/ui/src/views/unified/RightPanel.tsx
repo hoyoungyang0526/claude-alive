@@ -9,17 +9,20 @@ interface RightPanelProps {
   agents: AgentInfo[];
   completedSessions: CompletedSession[];
   stats: AgentStatsType | null;
+  collapsed?: boolean;
 }
 
-export function RightPanel({ events, agents, completedSessions, stats }: RightPanelProps) {
+export function RightPanel({ events, agents, completedSessions, stats, collapsed = false }: RightPanelProps) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
       style={{
-        width: 360,
-        minWidth: 360,
+        width: collapsed ? 0 : 360,
+        minWidth: collapsed ? 0 : 360,
+        opacity: collapsed ? 0 : 1,
         background: 'var(--bg-secondary)',
-        borderLeft: '1px solid var(--border-color)',
+        borderLeft: collapsed ? 'none' : '1px solid var(--border-color)',
+        transition: 'width 200ms ease, min-width 200ms ease, opacity 150ms ease',
       }}
     >
       {/* Agent Stats */}

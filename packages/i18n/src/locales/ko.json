@@ -2,7 +2,9 @@
   "header": {
     "title": "claude-alive",
     "agentCount_one": "에이전트 {{count}}개",
-    "agentCount_other": "에이전트 {{count}}개"
+    "agentCount_other": "에이전트 {{count}}개",
+    "toggleLeftPanel": "왼쪽 패널 토글",
+    "toggleRightPanel": "오른쪽 패널 토글"
   },
   "agents": {
     "noAgentsYet": "아직 에이전트가 없습니다",
@@ -141,14 +143,22 @@
     "apiCalls": "API 호출",
     "model": "모델"
   },
+  "terminal": {
+    "newTab": "새 탭",
+    "tabLabel": "터미널 {{n}}",
+    "exited": "종료됨",
+    "selectWorkingDir": "작업 디렉토리 선택",
+    "customPathPlaceholder": "~/path/to/project",
+    "customPathHint": "경로를 입력하고 Enter를 누르거나, 위의 프로젝트를 선택하세요",
+    "skipPermissions": "권한 건너뛰기 (--dangerously-skip-permissions)",
+    "skipPermissionsWarning": "Claude가 권한 요청 없이 모든 도구를 실행합니다."
+  },
   "chat": {
     "title": "Chat",
     "placeholder": "메시지를 입력하세요...",
     "send": "보내기",
     "you": "나",
-    "agent": "에이전트",
-    "streaming": "생각하는 중...",
-    "error": "오류: {{message}}"
+    "agent": "에이전트"
   },
   "bubble": {
     "readingTool": "{{tool}} 읽는 중...",

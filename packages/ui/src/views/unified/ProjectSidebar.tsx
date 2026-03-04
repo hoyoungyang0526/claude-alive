@@ -285,9 +285,10 @@ interface ProjectSidebarProps {
   characters?: Map<string, Character>;
   onRename?: (sessionId: string, name: string | null) => void;
   onAgentClick?: (sessionId: string) => void;
+  collapsed?: boolean;
 }
 
-export function ProjectSidebar({ agents, characters, onRename, onAgentClick }: ProjectSidebarProps) {
+export function ProjectSidebar({ agents, characters, onRename, onAgentClick, collapsed = false }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const projectGroups = useMemo(() => groupByProject(agents), [agents]);
   const charMap = characters ?? new Map<string, Character>();
@@ -296,10 +297,12 @@ export function ProjectSidebar({ agents, characters, onRename, onAgentClick }: P
     <div
       className="flex flex-col h-full overflow-hidden shrink-0"
       style={{
-        width: 300,
-        minWidth: 300,
+        width: collapsed ? 0 : 300,
+        minWidth: collapsed ? 0 : 300,
+        opacity: collapsed ? 0 : 1,
         background: 'var(--bg-secondary)',
-        borderRight: '1px solid var(--border-color)',
+        borderRight: collapsed ? 'none' : '1px solid var(--border-color)',
+        transition: 'width 200ms ease, min-width 200ms ease, opacity 150ms ease',
       }}
     >
       {/* Sidebar header */}

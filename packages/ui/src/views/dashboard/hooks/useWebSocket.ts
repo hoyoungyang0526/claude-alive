@@ -98,6 +98,8 @@ export function useWebSocket(url: string, onRawMessage?: (msg: WSServerMessage) 
             break;
           }
           case 'event:new': {
+            // Skip duplicates (race between snapshot and event:new)
+            if (events.length > 0 && events[events.length - 1]!.id >= msg.entry.id) break;
             events = [...events.slice(-199), msg.entry];
             const ea = agents.get(msg.entry.sessionId);
             if (ea) {
