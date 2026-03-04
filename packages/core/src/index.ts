@@ -8,3 +8,5 @@ export { transition } from './state/agentFSM.js';
 export { SessionStore } from './state/sessionStore.js';
 export type { EventLogEntry, AgentStats } from './state/sessionStore.js';
 export type { WSServerMessage, WSClientMessage } from './protocol/wsProtocol.js';
+export { parseTranscriptTokens } from './transcript/parser.js';
+export type { TokenUsage } from './transcript/parser.js';
