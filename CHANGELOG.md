@@ -6,6 +6,19 @@ All notable changes to claude-alive.
 
 ### New Features
 
+-  replace mock echo with Claude CLI subprocess streaming
+-  integrate ChatOverlay into PixelOfficePage
+-  add ChatOverlay component with pixel theme
+
+### Refactoring
+
+-  remove xterm.js terminal files and dependencies
+-  remove TerminalPanel from App and UnifiedView
+
+## v0.3.0 (2026-03-04)
+
+### New Features
+
 -  add embedded xterm.js terminal panel
 -  add terminal WebSocket endpoint /ws/terminal
 -  add PtyManager for terminal sessions
@@ -23,7 +36,6 @@ All notable changes to claude-alive.
 ### Other
 
 - test: add coverage for stats API, token usage, and terminal WS
-
 ## v0.2.3 (2026-03-03)
 
 ### Bug Fixes
