@@ -187,6 +187,9 @@ httpServer.listen(PORT, () => {
   `);
 });
 
+// Ignore SIGHUP so the server survives terminal close (daemon mode)
+process.on('SIGHUP', () => {});
+
 process.on('SIGINT', () => {
   console.log('\n[server] shutting down...');
   // terminals cleaned up via onClientDisconnect

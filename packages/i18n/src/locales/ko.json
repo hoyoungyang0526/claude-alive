@@ -152,7 +152,14 @@
     "customPathPlaceholder": "~/path/to/project",
     "customPathHint": "경로를 입력하고 Enter를 누르거나, 위의 프로젝트를 선택하세요",
     "skipPermissions": "권한 건너뛰기 (--dangerously-skip-permissions)",
-    "skipPermissionsWarning": "Claude가 권한 요청 없이 모든 도구를 실행합니다."
+    "skipPermissionsWarning": "Claude가 권한 요청 없이 모든 도구를 실행합니다.",
+    "modePopup": "팝업",
+    "modeBottom": "하단",
+    "modeRight": "우측",
+    "modeFullscreen": "전체화면",
+    "selectHere": "선택",
+    "emptyDir": "하위 폴더 없음",
+    "collapse": "최소화"
   },
   "chat": {
     "title": "Chat",

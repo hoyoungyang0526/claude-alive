@@ -3,7 +3,6 @@ import type { WSServerMessage } from '@claude-alive/core';
 import { useWebSocket } from '../dashboard/hooks/useWebSocket.ts';
 import { ProjectSidebar } from '../unified/ProjectSidebar.tsx';
 import { RightPanel } from '../unified/RightPanel.tsx';
-import { NotificationBanner } from '../dashboard/components/NotificationBanner.tsx';
 import { getAnthropomorphicText } from '../../utils/bubbleText.ts';
 import {
   createOfficeState, updateOffice, getEntities,
@@ -17,6 +16,7 @@ import { AgentTimelinePanel } from './components/AgentTimelinePanel';
 import type { PromptEntry } from './components/AgentTimelinePanel';
 import { ChatOverlay } from '../chat/ChatOverlay.tsx';
 import type { TerminalEventHandler } from '../chat/ChatOverlay.tsx';
+import { ToastContainer, useToasts } from '../../components/ToastContainer.tsx';
 
 const PixelCanvas = lazy(() => import('./components/PixelCanvas.tsx'));
 
@@ -50,6 +50,9 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, c
   const [, setPromptsVersion] = useState(0);
   const [, setCharVersion] = useState(0);
   const terminalHandlerRef = useRef<TerminalEventHandler | null>(null);
+  const { toasts, addToast, dismissToast } = useToasts();
+  const addToastRef = useRef(addToast);
+  addToastRef.current = addToast;
 
   // Stable callback ref for onRawMessage (avoids useWebSocket reconnects)
   const onRawRef = useRef<(msg: WSServerMessage) => void>(() => {});
@@ -116,9 +119,11 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, c
             break;
           case 'waiting':
             char.bubble = 'waiting';
+            addToastRef.current('warning', char.label || msg.sessionId.slice(0, 8), 'notifications.needsPermission', `${msg.sessionId}:waiting`);
             break;
           case 'error':
             char.bubble = 'error';
+            addToastRef.current('error', char.label || msg.sessionId.slice(0, 8), 'notifications.errorOccurred', `${msg.sessionId}:error`);
             break;
           case 'despawning':
             despawnCharacter(office, msg.sessionId);
@@ -200,7 +205,12 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, c
       }
     }
     setSelectedAgentId(null);
+    cameraTargetRef.current = null;
   }, [handleAgentClick]);
+
+  const handlePan = useCallback(() => {
+    cameraTargetRef.current = null;
+  }, []);
 
   const handleZoom = useCallback((delta: number) => {
     const cur = cameraRef.current.zoom;
@@ -251,6 +261,7 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, c
 
   return (
     <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       <ProjectSidebar
         agents={agentList}
         characters={officeRef.current.characters}
@@ -266,6 +277,7 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, c
             tileMap={officeRef.current.tileMap}
             entities={entitiesRef}
             onWorldClick={handleWorldClick}
+            onPan={handlePan}
           />
         </Suspense>
 
@@ -336,19 +348,6 @@ export function PixelOfficePage({ leftPanelOpen = true, rightPanelOpen = true, c
             />
           </div>
         )}
-
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 20,
-            left: 24,
-            right: 24,
-            zIndex: 10,
-            pointerEvents: 'auto',
-          }}
-        >
-          <NotificationBanner agents={agentList} />
-        </div>
 
         {/* Chat toggle button */}
         <button

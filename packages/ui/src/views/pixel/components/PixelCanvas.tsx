@@ -13,9 +13,10 @@ interface PixelCanvasProps {
   entities: React.MutableRefObject<Entity[]>;
   onTileClick?: (col: number, row: number) => void;
   onWorldClick?: (worldX: number, worldY: number) => void;
+  onPan?: () => void;
 }
 
-export default function PixelCanvas({ camera, tileMap, entities, onTileClick, onWorldClick }: PixelCanvasProps) {
+export default function PixelCanvas({ camera, tileMap, entities, onTileClick, onWorldClick, onPan }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isPanning = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
@@ -100,6 +101,7 @@ export default function PixelCanvas({ camera, tileMap, entities, onTileClick, on
         const totalDy = e.clientY - dragStart.current.y;
         if (Math.abs(totalDx) > 5 || Math.abs(totalDy) > 5) {
           isDragging.current = true;
+          onPan?.();
         } else {
           return;
         }

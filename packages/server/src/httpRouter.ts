@@ -1,4 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { readdir } from 'node:fs/promises';
+import { resolve as pathResolve } from 'node:path';
+import { homedir } from 'node:os';
 import { z } from 'zod';
 import type { HookEventPayload, HookEventData, HookEventName } from '@claude-alive/core';
 import { createStaticHandler } from './staticFiles.js';
@@ -192,6 +195,26 @@ export function createHttpServer(options: HttpRouterOptions) {
 
     if (req.method === 'GET' && url.pathname === '/api/stats') {
       sendJson(res, 200, getStats(), req);
+      return;
+    }
+
+    // GET /api/fs/browse?dir=/path — list directories for folder picker
+    if (req.method === 'GET' && url.pathname === '/api/fs/browse') {
+      try {
+        const rawDir = url.searchParams.get('dir') || '~';
+        const dir = rawDir.startsWith('~') ? pathResolve(homedir(), rawDir.slice(1).replace(/^\//, '')) : pathResolve(rawDir);
+        const entries = await readdir(dir, { withFileTypes: true });
+        const dirs: { name: string; path: string }[] = [];
+        for (const entry of entries) {
+          if (entry.isDirectory() && !entry.name.startsWith('.')) {
+            dirs.push({ name: entry.name, path: pathResolve(dir, entry.name) });
+          }
+        }
+        dirs.sort((a, b) => a.name.localeCompare(b.name));
+        sendJson(res, 200, { path: dir, dirs, isRoot: dir === '/' }, req);
+      } catch {
+        sendJson(res, 400, { error: 'Cannot read directory' }, req);
+      }
       return;
     }
 

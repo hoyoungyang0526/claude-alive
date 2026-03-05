@@ -152,7 +152,14 @@
     "customPathPlaceholder": "~/path/to/project",
     "customPathHint": "Enter a path and press Enter, or select a project above",
     "skipPermissions": "Skip permissions (--dangerously-skip-permissions)",
-    "skipPermissionsWarning": "Claude will execute all tools without asking for permission."
+    "skipPermissionsWarning": "Claude will execute all tools without asking for permission.",
+    "modePopup": "Popup",
+    "modeBottom": "Bottom",
+    "modeRight": "Right",
+    "modeFullscreen": "Fullscreen",
+    "selectHere": "Select",
+    "emptyDir": "No subdirectories",
+    "collapse": "Minimize"
   },
   "chat": {
     "title": "Chat",
