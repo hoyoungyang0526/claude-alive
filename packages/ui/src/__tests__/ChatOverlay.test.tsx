@@ -10,6 +10,11 @@ vi.mock('react-i18next', () => ({
         'chat.title': 'Chat',
         'terminal.newTab': 'New tab',
         'terminal.exited': 'Exited',
+        'terminal.modePopup': 'Popup',
+        'terminal.modeBottom': 'Bottom',
+        'terminal.modeRight': 'Right',
+        'terminal.modeFullscreen': 'Fullscreen',
+        'terminal.collapse': 'Minimize',
       };
       if (key === 'terminal.tabLabel' && opts?.n != null) return `Terminal ${opts.n}`;
       return map[key] ?? key;
@@ -63,7 +68,7 @@ describe('ChatOverlay', () => {
   it('calls onToggle when close button is clicked', () => {
     const onToggle = vi.fn();
     render(<ChatOverlay open={true} onToggle={onToggle} />);
-    fireEvent.click(screen.getByText('✕'));
+    fireEvent.click(screen.getByTitle('Minimize'));
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
